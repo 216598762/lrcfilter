@@ -35,7 +35,6 @@ def detect_metadata_mismatch(
     # Duration difference (None if not available)
     duration_difference = _calculate_duration_difference(
         file_metadata.duration_seconds,
-        None,  # LyricsResult doesn't have duration directly
     )
     
     # Determine if mismatch
@@ -155,22 +154,21 @@ def _calculate_artist_similarity(artist1: str, artist2: str) -> float:
 
 def _calculate_duration_difference(
     file_duration: float,
-    lyrics_duration: float,
 ) -> float:
     """
     Calculate duration difference between file and lyrics.
     
+    Note: LyricsResult doesn't currently include duration, so this
+    always returns None until duration is added to LyricsResult.
+    
     Args:
         file_duration: Duration from audio file
-        lyrics_duration: Duration from lyrics API
         
     Returns:
         Duration difference in seconds, or None if not available
     """
-    if file_duration is None or lyrics_duration is None:
-        return None
-    
-    return abs(file_duration - lyrics_duration)
+    # LyricsResult doesn't have duration yet - return None for now
+    return None
 
 
 def _calculate_confidence(

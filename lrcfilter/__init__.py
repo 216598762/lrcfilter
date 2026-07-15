@@ -11,6 +11,7 @@ from lrcfilter.censorship import detect_censorship
 from lrcfilter.instrumental import detect_instrumental
 from lrcfilter.mismatch import detect_metadata_mismatch
 from lrcfilter.output import write_results
+from lrcfilter.pipeline import run_pipeline, PipelineConfig, PipelineResult
 
 __all__ = [
     "scan_audio_files",
@@ -21,4 +22,7 @@ __all__ = [
     "detect_instrumental",
     "detect_metadata_mismatch",
     "write_results",
+    "run_pipeline",
+    "PipelineConfig",
+    "PipelineResult",
 ]

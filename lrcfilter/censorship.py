@@ -131,10 +131,13 @@ def _detect_profanity(text: str) -> int:
     
     if BETTER_PROFANITY_AVAILABLE:
         # Use better-profanity library for comprehensive detection
-        censored_text = profanity.censor(text)
-        # Count censored words (marked with asterisks)
-        asterisk_groups = re.findall(r'\*+', censored_text)
-        return len(asterisk_groups)
+        # Find all words in text and check each one
+        words = re.findall(r'\b\w+\b', text)
+        count = 0
+        for word in words:
+            if profanity.contains_profanity(word):
+                count += 1
+        return count
     else:
         # Fallback to basic profanity list
         words = re.findall(r'\b\w+\b', text.lower())
