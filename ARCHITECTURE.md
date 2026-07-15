@@ -473,7 +473,6 @@ lrcfilter/
 │   ├── test_censorship.py
 │   ├── test_instrumental.py
 │   └── test_mismatch.py
-├── requirements.txt
 ├── pyproject.toml
 ├── README.md
 └── ARCHITECTURE.md          # This file
@@ -483,25 +482,19 @@ lrcfilter/
 
 ## Dependencies
 
-```txt
-# requirements.txt
+Dependencies are defined in `pyproject.toml`:
 
-# Audio metadata
-mutagen>=1.47.0
-
-# Speech recognition
-faster-whisper>=1.0.0
-
-# Lyrics fetching
-requests>=2.31.0
-lyricsgenius>=1.5.0
-
-# Text processing
-rapidfuzz>=3.6.0
-better-profanity>=0.7.0
-
-# Utilities
-tqdm>=4.66.0
+```toml
+[project]
+dependencies = [
+    "mutagen>=1.47.0",
+    "faster-whisper>=1.0.0",
+    "requests>=2.31.0",
+    "lyricsgenius>=1.5.0",
+    "rapidfuzz>=3.6.0",
+    "better-profanity>=0.7.0",
+    "tqdm>=4.66.0",
+]
 ```
 
 ---
