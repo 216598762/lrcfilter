@@ -9,6 +9,9 @@ from lrcfilter.models import TrackMetadata, LyricsResult, MismatchResult
 def detect_metadata_mismatch(
     file_metadata: TrackMetadata,
     lyrics_result: LyricsResult,
+    title_threshold: float = TITLE_MATCH_THRESHOLD,
+    artist_threshold: float = ARTIST_MATCH_THRESHOLD,
+    duration_tolerance: float = DURATION_TOLERANCE,
 ) -> MismatchResult:
     """
     Detect if lyrics metadata doesn't match file metadata.
@@ -16,10 +19,26 @@ def detect_metadata_mismatch(
     Args:
         file_metadata: Metadata from the audio file
         lyrics_result: Lyrics fetched from API
+        title_threshold: Minimum title similarity score (0-1) to consider match.
+                        Default from config.TITLE_MATCH_THRESHOLD.
+        artist_threshold: Minimum artist similarity score (0-1) to consider match.
+                         Default from config.ARTIST_MATCH_THRESHOLD.
+        duration_tolerance: Maximum allowed duration difference in seconds.
+                           Default from config.DURATION_TOLERANCE.
         
     Returns:
         MismatchResult with detection results
+        
+    Raises:
+        ValueError: If thresholds are not between 0.0 and 1.0 or duration_tolerance is negative
     """
+    if not 0.0 <= title_threshold <= 1.0:
+        raise ValueError(f"title_threshold must be between 0.0 and 1.0, got {title_threshold}")
+    if not 0.0 <= artist_threshold <= 1.0:
+        raise ValueError(f"artist_threshold must be between 0.0 and 1.0, got {artist_threshold}")
+    if duration_tolerance < 0:
+        raise ValueError(f"duration_tolerance must be non-negative, got {duration_tolerance}")
+    
     # Title similarity
     title_score = _calculate_title_similarity(
         file_metadata.title,
@@ -39,11 +58,11 @@ def detect_metadata_mismatch(
     
     # Determine if mismatch
     has_duration_mismatch = (
-        duration_difference is not None and duration_difference > DURATION_TOLERANCE
+        duration_difference is not None and duration_difference > duration_tolerance
     )
     is_mismatch = (
-        title_score < TITLE_MATCH_THRESHOLD or
-        artist_score < ARTIST_MATCH_THRESHOLD or
+        title_score < title_threshold or
+        artist_score < artist_threshold or
         has_duration_mismatch
     )
     
@@ -58,6 +77,7 @@ def detect_metadata_mismatch(
         artist_score,
         duration_difference,
         is_mismatch,
+        duration_tolerance,
     )
     
     return MismatchResult(
@@ -207,6 +227,7 @@ def _generate_details(
     artist_score: float,
     duration_difference: float,
     is_mismatch: bool,
+    duration_tolerance: float = DURATION_TOLERANCE,
 ) -> str:
     """
     Generate human-readable details about metadata mismatch.
@@ -235,7 +256,7 @@ def _generate_details(
     lyrics_artist = lyrics_result.matched_artist_name or "Unknown"
     parts.append(f"Artist: '{file_artist}' vs '{lyrics_artist}' ({artist_score:.0%} match)")
     
-    if duration_difference is not None and duration_difference > DURATION_TOLERANCE:
+    if duration_difference is not None and duration_difference > duration_tolerance:
         parts.append(f"Duration differs by {duration_difference:.1f}s")
     
     return "; ".join(parts)

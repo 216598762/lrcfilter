@@ -21,6 +21,7 @@ def write_results(
     instrumental_tracks: List[Tuple[AudioFile, InstrumentalResult]],
     metadata_mismatches: List[Tuple[AudioFile, MismatchResult]],
     output_dir: Path,
+    filename_prefix: Optional[str] = None,
 ) -> None:
     """
     Write all results to output files.
@@ -30,23 +31,27 @@ def write_results(
         instrumental_tracks: List of (AudioFile, InstrumentalResult) tuples
         metadata_mismatches: List of (AudioFile, MismatchResult) tuples
         output_dir: Directory to write output files
+        filename_prefix: Optional prefix for output filenames. If provided, files will be named
+                        '{prefix}_censored.txt', '{prefix}_instrumental.txt', etc.
+                        If None, uses default names 'censored.txt', etc.
     """
     # Write censored tracks
     if censored_tracks:
-        _write_censored_file(censored_tracks, output_dir)
+        _write_censored_file(censored_tracks, output_dir, filename_prefix)
     
     # Write instrumental tracks
     if instrumental_tracks:
-        _write_instrumental_file(instrumental_tracks, output_dir)
+        _write_instrumental_file(instrumental_tracks, output_dir, filename_prefix)
     
     # Write metadata mismatches
     if metadata_mismatches:
-        _write_mismatch_file(metadata_mismatches, output_dir)
+        _write_mismatch_file(metadata_mismatches, output_dir, filename_prefix)
 
 
 def _write_censored_file(
     tracks: List[Tuple[AudioFile, CensorshipResult]],
     output_dir: Path,
+    filename_prefix: Optional[str] = None,
 ) -> None:
     """
     Write censored tracks to file.
@@ -55,7 +60,8 @@ def _write_censored_file(
         tracks: List of (AudioFile, CensorshipResult) tuples
         output_dir: Output directory
     """
-    output_path = output_dir / "censored.txt"
+    filename = f"{filename_prefix}_censored.txt" if filename_prefix else "censored.txt"
+    output_path = output_dir / filename
     
     with open(output_path, "w", encoding=OUTPUT_ENCODING) as f:
         # Write header
@@ -79,6 +85,7 @@ def _write_censored_file(
 def _write_instrumental_file(
     tracks: List[Tuple[AudioFile, InstrumentalResult]],
     output_dir: Path,
+    filename_prefix: Optional[str] = None,
 ) -> None:
     """
     Write instrumental tracks to file.
@@ -87,7 +94,8 @@ def _write_instrumental_file(
         tracks: List of (AudioFile, InstrumentalResult) tuples
         output_dir: Output directory
     """
-    output_path = output_dir / "instrumental.txt"
+    filename = f"{filename_prefix}_instrumental.txt" if filename_prefix else "instrumental.txt"
+    output_path = output_dir / filename
     
     with open(output_path, "w", encoding=OUTPUT_ENCODING) as f:
         # Write header
@@ -110,6 +118,7 @@ def _write_instrumental_file(
 def _write_mismatch_file(
     tracks: List[Tuple[AudioFile, MismatchResult]],
     output_dir: Path,
+    filename_prefix: Optional[str] = None,
 ) -> None:
     """
     Write metadata mismatches to file.
@@ -118,7 +127,8 @@ def _write_mismatch_file(
         tracks: List of (AudioFile, MismatchResult) tuples
         output_dir: Output directory
     """
-    output_path = output_dir / "metadata_mismatches.txt"
+    filename = f"{filename_prefix}_metadata_mismatches.txt" if filename_prefix else "metadata_mismatches.txt"
+    output_path = output_dir / filename
     
     with open(output_path, "w", encoding=OUTPUT_ENCODING) as f:
         # Write header

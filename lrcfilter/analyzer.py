@@ -59,30 +59,40 @@ def analyze_audio(
     model_name: str = DEFAULT_MODEL,
     device: str = DEFAULT_DEVICE,
     compute_type: str = DEFAULT_COMPUTE_TYPE,
+    beam_size: int = 5,
+    vad_filter: bool = True,
 ) -> TranscriptionResult:
     """
     Transcribe an audio file using faster-whisper.
     
     Args:
         audio_file: AudioFile to transcribe
-        model_name: Whisper model name
-        device: Device to run on
-        compute_type: Compute type
+        model_name: Whisper model name (tiny, base, small, medium, large-v2, large-v3, turbo)
+        device: Device to run on ('cpu' or 'cuda')
+        compute_type: Compute type ('float16', 'int8', 'int8_float16', 'float32')
+        beam_size: Beam size for transcription (default: 5)
+        vad_filter: Enable Voice Activity Detection filter (default: True)
         
     Returns:
         TranscriptionResult with transcription data
+        
+    Raises:
+        ValueError: If beam_size is not positive
     """
+    if beam_size <= 0:
+        raise ValueError(f"beam_size must be positive, got {beam_size}")
+    
     model = get_model(model_name, device, compute_type)
     
     # Transcribe with VAD and word timestamps
     segments_iter, info = model.transcribe(
         str(audio_file.path),
-        beam_size=5,
+        beam_size=beam_size,
         word_timestamps=True,
-        vad_filter=True,
+        vad_filter=vad_filter,
         vad_parameters=dict(
             min_silence_duration_ms=500,
-        ),
+        ) if vad_filter else None,
     )
     
     # Collect segments

@@ -27,16 +27,26 @@ except ImportError:
 def detect_censorship(
     lyrics: str,
     transcription: str,
+    threshold: float = CENSORSHIP_MISMATCH_THRESHOLD,
 ) -> CensorshipResult:
     """
     Detect censorship using lyrics vs transcription mismatch and profanity detection.
     
-    Args lyrics: Original lyrics text
-    Args transcription: Whisper transcription text
+    Args:
+        lyrics: Original lyrics text
+        transcription: Whisper transcription text
+        threshold: Mismatch score threshold above which lyrics are considered censored.
+                   Default from config.CENSORSHIP_MISMATCH_THRESHOLD.
         
     Returns:
         CensorshipResult with detection results
+        
+    Raises:
+        ValueError: If threshold is not between 0.0 and 1.0
     """
+    if not 0.0 <= threshold <= 1.0:
+        raise ValueError(f"threshold must be between 0.0 and 1.0, got {threshold}")
+    
     # Method 1: Lyrics vs transcription mismatch
     mismatch_score = _calculate_mismatch_score(lyrics, transcription)
     
@@ -44,13 +54,13 @@ def detect_censorship(
     profanity_count = _detect_profanity(transcription)
     
     # Combined decision
-    is_censored = mismatch_score > CENSORSHIP_MISMATCH_THRESHOLD or profanity_count > 0
+    is_censored = mismatch_score > threshold or profanity_count > 0
     
     # Calculate confidence
     confidence = _calculate_confidence(mismatch_score, profanity_count)
     
     # Generate details
-    details = _generate_details(mismatch_score, profanity_count, is_censored)
+    details = _generate_details(mismatch_score, profanity_count, is_censored, threshold)
     
     return CensorshipResult(
         is_censored=is_censored,
@@ -175,6 +185,7 @@ def _generate_details(
     mismatch_score: float,
     profanity_count: int,
     is_censored: bool,
+    threshold: float = CENSORSHIP_MISMATCH_THRESHOLD,
 ) -> str:
     """
     Generate human-readable details about censorship detection.
@@ -192,7 +203,7 @@ def _generate_details(
     
     parts = []
     
-    if mismatch_score > CENSORSHIP_MISMATCH_THRESHOLD:
+    if mismatch_score > threshold:
         parts.append(f"Lyrics mismatch ({mismatch_score:.1%})")
     
     if profanity_count > 0:

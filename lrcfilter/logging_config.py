@@ -8,6 +8,7 @@ from typing import Optional
 
 def setup_logging(
     verbose: bool = False,
+    quiet: bool = False,
     log_file: Optional[Path] = None,
 ) -> None:
     """
@@ -15,10 +16,16 @@ def setup_logging(
     
     Args:
         verbose: Enable debug-level logging
+        quiet: Suppress non-error output
         log_file: Optional file to write logs to
     """
-    # Set log level based on verbosity
-    level = logging.DEBUG if verbose else logging.INFO
+    # Set log level based on verbosity/quiet flags
+    if verbose:
+        level = logging.DEBUG
+    elif quiet:
+        level = logging.WARNING
+    else:
+        level = logging.INFO
     
     # Create formatter
     formatter = logging.Formatter(

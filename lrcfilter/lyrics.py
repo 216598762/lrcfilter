@@ -23,36 +23,49 @@ except ImportError:
 def fetch_lyrics(
     metadata: TrackMetadata,
     genius_token: Optional[str] = None,
+    lrclib_only: bool = False,
+    api_delay: float = API_RATE_LIMIT_DELAY,
 ) -> Optional[LyricsResult]:
     """
     Fetch lyrics from LRCLib with Genius fallback.
     
     Args:
         metadata: Track metadata to search for
-        genius_token: Optional Genius API token
+        genius_token: Optional Genius API token (or set GENIUS_ACCESS_TOKEN env var)
+        lrclib_only: If True, only use LRCLib API and skip Genius fallback.
+        api_delay: Delay in seconds between API requests to avoid rate limiting.
+                  Default from config.API_RATE_LIMIT_DELAY.
         
     Returns:
         LyricsResult if lyrics found, None otherwise
+        
+    Raises:
+        ValueError: If api_delay is negative
     """
+    if api_delay < 0:
+        raise ValueError(f"api_delay must be non-negative, got {api_delay}")
+    
     if not metadata.title:
         return None
     
     # Try LRCLib first
-    lrclib_result = _fetch_from_lrclib(metadata)
+    lrclib_result = _fetch_from_lrclib(metadata, api_delay)
     if lrclib_result and (lrclib_result.synced_lyrics or lrclib_result.plain_lyrics):
         return lrclib_result
     
-    # Fall back to Genius if token provided
+    # Fall back to Genius if token provided and not lrclib_only
+    if lrclib_only:
+        return None
     genius_token = genius_token or os.getenv(GENIUS_TOKEN_ENV)
     if genius_token and GENIUS_AVAILABLE:
-        genius_result = _fetch_from_genius(metadata, genius_token)
+        genius_result = _fetch_from_genius(metadata, genius_token, api_delay)
         if genius_result and genius_result.plain_lyrics:
             return genius_result
     
     return None
 
 
-def _fetch_from_lrclib(metadata: TrackMetadata) -> Optional[LyricsResult]:
+def _fetch_from_lrclib(metadata: TrackMetadata, api_delay: float = API_RATE_LIMIT_DELAY) -> Optional[LyricsResult]:
     """
     Fetch lyrics from LRCLib API.
     
@@ -108,12 +121,13 @@ def _fetch_from_lrclib(metadata: TrackMetadata) -> Optional[LyricsResult]:
         logger.warning(f"LRCLib fetch failed: {e}")
         return None
     finally:
-        time.sleep(API_RATE_LIMIT_DELAY)
+        time.sleep(api_delay)
 
 
 def _fetch_from_genius(
     metadata: TrackMetadata,
     genius_token: str,
+    api_delay: float = API_RATE_LIMIT_DELAY,
 ) -> Optional[LyricsResult]:
     """
     Fetch lyrics from Genius API.
@@ -153,7 +167,7 @@ def _fetch_from_genius(
         logger.warning(f"Genius fetch failed: {e}")
         return None
     finally:
-        time.sleep(API_RATE_LIMIT_DELAY)
+        time.sleep(api_delay)
 
 
 def _calculate_match_score(metadata: TrackMetadata, lrclib_result: dict) -> float:

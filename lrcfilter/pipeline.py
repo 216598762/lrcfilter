@@ -30,12 +30,67 @@ logger = get_logger(__name__)
 @dataclass
 class PipelineConfig:
     """Configuration for the analysis pipeline."""
+    # Whisper model settings
     model_name: str = DEFAULT_MODEL
     device: str = DEFAULT_DEVICE
     compute_type: str = DEFAULT_COMPUTE_TYPE
+    beam_size: int = 5
+    vad_filter: bool = True
+    
+    # API settings
     genius_token: Optional[str] = None
+    lrclib_only: bool = False
+    api_delay: float = 1.0
+    
+    # Output settings
     output_dir: Path = field(default_factory=lambda: Path("."))
     verbose: bool = False
+    formats: Optional[set] = None
+    no_censored: bool = False
+    no_instrumental: bool = False
+    no_mismatches: bool = False
+    
+    # Detection thresholds
+    censorship_threshold: float = 0.3
+    min_words_vocals: int = 10
+    min_speech_duration: float = 5.0
+    title_threshold: float = 0.6
+    artist_threshold: float = 0.7
+    duration_tolerance: float = 30.0
+    
+    def __post_init__(self) -> None:
+        """Validate configuration parameters."""
+        # Validate beam_size
+        if self.beam_size <= 0:
+            raise ValueError(f"beam_size must be positive, got {self.beam_size}")
+        
+        # Validate api_delay
+        if self.api_delay < 0:
+            raise ValueError(f"api_delay must be non-negative, got {self.api_delay}")
+        
+        # Validate censorship_threshold
+        if not 0.0 <= self.censorship_threshold <= 1.0:
+            raise ValueError(f"censorship_threshold must be between 0.0 and 1.0, got {self.censorship_threshold}")
+        
+        # Validate min_words_vocals
+        if self.min_words_vocals < 0:
+            raise ValueError(f"min_words_vocals must be non-negative, got {self.min_words_vocals}")
+        
+        # Validate min_speech_duration
+        if self.min_speech_duration < 0:
+            raise ValueError(f"min_speech_duration must be non-negative, got {self.min_speech_duration}")
+        
+        # Validate title_threshold
+        if not 0.0 <= self.title_threshold <= 1.0:
+            raise ValueError(f"title_threshold must be between 0.0 and 1.0, got {self.title_threshold}")
+        
+        # Validate artist_threshold
+        if not 0.0 <= self.artist_threshold <= 1.0:
+            raise ValueError(f"artist_threshold must be between 0.0 and 1.0, got {self.artist_threshold}")
+        
+        # Validate duration_tolerance
+        if self.duration_tolerance < 0:
+            raise ValueError(f"duration_tolerance must be non-negative, got {self.duration_tolerance}")
 
 
 @dataclass
@@ -86,12 +141,20 @@ def process_single_track(
     lyrics = fetch_lyrics(
         metadata,
         genius_token=config.genius_token,
+        lrclib_only=config.lrclib_only,
+        api_delay=config.api_delay,
     )
     
     # Step 3: Check for metadata mismatch
     mismatch = None
     if lyrics:
-        mismatch = detect_metadata_mismatch(metadata, lyrics)
+        mismatch = detect_metadata_mismatch(
+            metadata,
+            lyrics,
+            title_threshold=config.title_threshold,
+            artist_threshold=config.artist_threshold,
+            duration_tolerance=config.duration_tolerance,
+        )
     
     # Step 4: Transcribe audio with Whisper
     transcription = analyze_audio(
@@ -99,6 +162,8 @@ def process_single_track(
         model_name=config.model_name,
         device=config.device,
         compute_type=config.compute_type,
+        beam_size=config.beam_size,
+        vad_filter=config.vad_filter,
     )
     
     # Step 5: Detect censorship
@@ -107,10 +172,15 @@ def process_single_track(
         censorship = detect_censorship(
             lyrics.plain_lyrics,
             transcription.text,
+            threshold=config.censorship_threshold,
         )
     
     # Step 6: Detect instrumental
-    instrumental = detect_instrumental(transcription)
+    instrumental = detect_instrumental(
+        transcription,
+        min_words_vocals=config.min_words_vocals,
+        min_speech_duration=config.min_speech_duration,
+    )
     
     return TrackResult(
         audio_file=audio_file,
@@ -146,7 +216,7 @@ def run_pipeline(
     config.output_dir.mkdir(parents=True, exist_ok=True)
     
     # Scan for audio files
-    audio_files = scan_audio_files(directory)
+    audio_files = scan_audio_files(directory, formats=config.formats)
     total_files = len(audio_files)
     
     if total_files == 0:
@@ -201,9 +271,9 @@ def run_pipeline(
     
     # Write results to files
     write_results(
-        censored_tracks=censored_tracks,
-        instrumental_tracks=instrumental_tracks,
-        metadata_mismatches=metadata_mismatches,
+        censored_tracks=censored_tracks if not config.no_censored else [],
+        instrumental_tracks=instrumental_tracks if not config.no_instrumental else [],
+        metadata_mismatches=metadata_mismatches if not config.no_mismatches else [],
         output_dir=config.output_dir,
     )
     
