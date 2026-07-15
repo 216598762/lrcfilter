@@ -1,0 +1,137 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lrcfilter"
+version = "0.1.0"
+description = "Audio analysis tool for detecting censored/explicit content and instrumental tracks"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [
+    {name = "LRCFilter"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "mutagen>=1.47.0",
+    "faster-whisper>=1.0.0",
+    "requests>=2.31.0",
+    "lyricsgenius>=1.5.0",
+    "rapidfuzz>=3.6.0",
+    "better-profanity>=0.7.0",
+    "tqdm>=4.66.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.5.0",
+    "pre-commit>=3.0.0",
+]
+
+[project.scripts]
+lrcfilter = "lrcfilter.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/216598762/lrcfilter"
+Repository = "https://github.com/216598762/lrcfilter"
+Issues = "https://github.com/216598762/lrcfilter/issues"
+
+[tool.setuptools.packages.find]
+include = ["lrcfilter*"]
+
+[tool.ruff]
+# Target Python 3.9+
+target-version = "py39"
+
+# Line length
+line-length = 100
+
+# Exclude directories
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "env",
+    "__pycache__",
+    "*.egg-info",
+    "build",
+    "dist",
+    ".eggs",
+]
+
+[tool.ruff.lint]
+# Enable default rule sets
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking
+    "RUF",  # ruff-specific rules
+]
+
+# Ignore specific rules
+ignore = [
+    "E501",   # Line too long (handled by formatter)
+    "B008",   # Do not perform function calls in argument defaults
+    "SIM108", # Use ternary operator
+]
+
+# Allow autofix for all enabled rules
+fixable = ["ALL"]
+
+# Allow unused variables when prefixed with _
+unused-variables-ignore-underscore-start = true
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/*" = ["S101"]  # Allow assert in tests
+
+[tool.ruff.lint.isort]
+known-first-party = ["lrcfilter"]
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = true
+
+[tool.ruff.format]
+# Use double quotes
+quote-style = "double"
+# Use spaces for indentation
+indent-style = "space"
+# Respect magic trailing commas
+skip-magic-trailing-comma = false
+# Auto-detect line endings
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["lrcfilter"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.",
+    "raise NotImplementedError",
+]
