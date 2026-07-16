@@ -719,6 +719,14 @@ class TestPipelineEdgeCases:
         assert result.processed_files == 0
         assert len(result.track_results) == 0
 
+    def test_default_config_when_none(self, output_dir: Path) -> None:
+        """Pipeline should create default PipelineConfig when config is None (line 213)."""
+        with patch("lrcfilter.pipeline.scan_audio_files", return_value=[]):
+            result = run_pipeline(directory=Path("."), config=None)
+
+        assert result.total_files == 0
+        assert result.processed_files == 0
+
     def test_exception_in_track_continues_pipeline(
         self, tmp_audio_dir: Path, output_dir: Path
     ) -> None:
