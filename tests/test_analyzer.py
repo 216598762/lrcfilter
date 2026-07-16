@@ -1,13 +1,13 @@
 """Tests for analyzer module to improve coverage from 27%."""
 
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from lrcfilter.analyzer import get_model, analyze_audio, _model_cache
+from lrcfilter.analyzer import _model_cache, analyze_audio, get_model
+from lrcfilter.config import DEFAULT_COMPUTE_TYPE, DEFAULT_DEVICE, DEFAULT_MODEL
 from lrcfilter.models import AudioFile, TranscriptionResult
-from lrcfilter.config import DEFAULT_MODEL, DEFAULT_DEVICE, DEFAULT_COMPUTE_TYPE
 
 
 @pytest.fixture(autouse=True)
@@ -70,9 +70,9 @@ class TestGetModel:
 
     def test_raises_exception_on_model_creation_failure(self) -> None:
         """Should raise exception when WhisperModel creation fails."""
-        with patch("lrcfilter.analyzer.WhisperModel", side_effect=RuntimeError("CUDA error")):
-            with pytest.raises(RuntimeError, match="CUDA error"):
-                get_model("large-v3", "cuda", "float16")
+        with patch("lrcfilter.analyzer.WhisperModel", side_effect=RuntimeError("CUDA error")), \
+             pytest.raises(RuntimeError, match="CUDA error"):
+            get_model("large-v3", "cuda", "float16")
 
     def test_cache_key_format(self) -> None:
         """Cache key should be formatted as model_device_compute_type."""
@@ -386,10 +386,10 @@ class TestAnalyzeAudio:
         # Segment with words
         mock_word = self._make_mock_word("Hello", 0.0, 0.5, 0.99)
         mock_segment1 = self._make_mock_segment("Hello world", 0.0, 2.0, [mock_word])
-        
+
         # Segment without words
         mock_segment2 = self._make_mock_segment("No words here", 2.0, 4.0, words=None)
-        
+
         mock_info = MagicMock()
         mock_info.language = "en"
         mock_info.duration = 10.0
@@ -448,16 +448,16 @@ class TestAnalyzeAudio:
         """Should log info when loading model."""
         mock_model = MagicMock(spec=["transcribe"])
 
-        with patch("lrcfilter.analyzer.WhisperModel", return_value=mock_model):
-            with patch("lrcfilter.analyzer.logger") as mock_logger:
-                get_model("tiny", "cpu", "float32")
-                mock_logger.info.assert_any_call("Loading Whisper model 'tiny' on cpu...")
-                mock_logger.info.assert_any_call("Model loaded successfully.")
+        with patch("lrcfilter.analyzer.WhisperModel", return_value=mock_model), \
+             patch("lrcfilter.analyzer.logger") as mock_logger:
+            get_model("tiny", "cpu", "float32")
+            mock_logger.info.assert_any_call("Loading Whisper model 'tiny' on cpu...")
+            mock_logger.info.assert_any_call("Model loaded successfully.")
 
     def test_model_creation_failure_logs_error(self) -> None:
         """Should log error when model creation fails."""
-        with patch("lrcfilter.analyzer.WhisperModel", side_effect=RuntimeError("CUDA error")):
-            with patch("lrcfilter.analyzer.logger") as mock_logger:
-                with pytest.raises(RuntimeError):
-                    get_model("large-v3", "cuda", "float16")
-                mock_logger.error.assert_called_once()
+        with patch("lrcfilter.analyzer.WhisperModel", side_effect=RuntimeError("CUDA error")), \
+             patch("lrcfilter.analyzer.logger") as mock_logger, \
+             pytest.raises(RuntimeError):
+            get_model("large-v3", "cuda", "float16")
+        mock_logger.error.assert_called_once()

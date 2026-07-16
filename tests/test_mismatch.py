@@ -3,13 +3,13 @@
 import pytest
 
 from lrcfilter.mismatch import (
-    detect_metadata_mismatch,
-    _calculate_title_similarity,
     _calculate_artist_similarity,
     _calculate_confidence,
+    _calculate_title_similarity,
     _generate_details,
+    detect_metadata_mismatch,
 )
-from lrcfilter.models import TrackMetadata, LyricsResult, MismatchResult
+from lrcfilter.models import LyricsResult, MismatchResult, TrackMetadata
 from lrcfilter.utils import normalize_for_mismatch
 
 
@@ -46,7 +46,7 @@ def test_calculate_title_similarity_empty() -> None:
     """Test title similarity with empty strings."""
     score = _calculate_title_similarity("", "Test Song")
     assert score == 0.0
-    
+
     score = _calculate_title_similarity("Test Song", "")
     assert score == 0.0
 
@@ -71,7 +71,7 @@ def test_detect_metadata_mismatch_match() -> None:
         album=None,
         duration_seconds=180.0,
     )
-    
+
     lyrics_result = LyricsResult(
         source="lrclib",
         synced_lyrics=None,
@@ -81,9 +81,9 @@ def test_detect_metadata_mismatch_match() -> None:
         matched_album_name=None,
         match_score=1.0,
     )
-    
+
     result = detect_metadata_mismatch(file_metadata, lyrics_result)
-    
+
     assert isinstance(result, MismatchResult)
     assert result.is_mismatch is False
     assert result.title_score == 1.0
@@ -98,7 +98,7 @@ def test_detect_metadata_mismatch_mismatch() -> None:
         album=None,
         duration_seconds=180.0,
     )
-    
+
     lyrics_result = LyricsResult(
         source="lrclib",
         synced_lyrics=None,
@@ -108,9 +108,9 @@ def test_detect_metadata_mismatch_mismatch() -> None:
         matched_album_name=None,
         match_score=0.0,
     )
-    
+
     result = detect_metadata_mismatch(file_metadata, lyrics_result)
-    
+
     assert isinstance(result, MismatchResult)
     assert result.is_mismatch is True
     assert result.title_score < 0.5
@@ -125,7 +125,7 @@ def test_detect_metadata_mismatch_missing_metadata() -> None:
         album=None,
         duration_seconds=None,
     )
-    
+
     lyrics_result = LyricsResult(
         source="lrclib",
         synced_lyrics=None,
@@ -135,9 +135,9 @@ def test_detect_metadata_mismatch_missing_metadata() -> None:
         matched_album_name=None,
         match_score=0.5,
     )
-    
+
     result = detect_metadata_mismatch(file_metadata, lyrics_result)
-    
+
     # Should handle missing metadata gracefully
     assert isinstance(result, MismatchResult)
     assert result.is_mismatch is True
@@ -153,7 +153,7 @@ def test_mismatch_result_dataclass() -> None:
         confidence=0.8,
         details="Title and artist mismatch",
     )
-    
+
     assert result.is_mismatch is True
     assert result.title_score == 0.3
     assert result.artist_score == 0.4
@@ -168,9 +168,9 @@ def test_invalid_title_threshold() -> None:
     lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
                                   matched_track_name="Song", matched_artist_name="Artist",
                                   matched_album_name=None, match_score=1.0)
-    with pytest.raises(ValueError, match="title_threshold must be between 0.0 and 1.0"):
+    with pytest.raises(ValueError, match=r"title_threshold must be between 0\.0 and 1\.0"):
         detect_metadata_mismatch(file_metadata, lyrics_result, title_threshold=-0.1)
-    with pytest.raises(ValueError, match="title_threshold must be between 0.0 and 1.0"):
+    with pytest.raises(ValueError, match=r"title_threshold must be between 0\.0 and 1\.0"):
         detect_metadata_mismatch(file_metadata, lyrics_result, title_threshold=1.1)
 
 
@@ -180,9 +180,9 @@ def test_invalid_artist_threshold() -> None:
     lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
                                   matched_track_name="Song", matched_artist_name="Artist",
                                   matched_album_name=None, match_score=1.0)
-    with pytest.raises(ValueError, match="artist_threshold must be between 0.0 and 1.0"):
+    with pytest.raises(ValueError, match=r"artist_threshold must be between 0\.0 and 1\.0"):
         detect_metadata_mismatch(file_metadata, lyrics_result, artist_threshold=-0.1)
-    with pytest.raises(ValueError, match="artist_threshold must be between 0.0 and 1.0"):
+    with pytest.raises(ValueError, match=r"artist_threshold must be between 0\.0 and 1\.0"):
         detect_metadata_mismatch(file_metadata, lyrics_result, artist_threshold=1.1)
 
 

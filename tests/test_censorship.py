@@ -1,13 +1,14 @@
 """Tests for censorship module."""
 
-import pytest
 from unittest.mock import patch
 
+import pytest
+
 from lrcfilter.censorship import (
-    detect_censorship,
     _calculate_mismatch_score,
     _detect_profanity,
     _generate_details,
+    detect_censorship,
 )
 from lrcfilter.models import CensorshipResult
 from lrcfilter.utils import normalize_for_censorship
@@ -25,7 +26,7 @@ def test_calculate_mismatch_score_identical() -> None:
     """Test mismatch score for identical texts."""
     lyrics = "This is a test song"
     transcription = "This is a test song"
-    
+
     score = _calculate_mismatch_score(lyrics, transcription)
     assert score == 0.0  # No mismatch
 
@@ -34,7 +35,7 @@ def test_calculate_mismatch_score_different() -> None:
     """Test mismatch score for completely different texts."""
     lyrics = "This is a love song about roses"
     transcription = "Completely unrelated spoken words here"
-    
+
     score = _calculate_mismatch_score(lyrics, transcription)
     assert score > 0.5  # Significant mismatch
 
@@ -43,7 +44,7 @@ def test_calculate_mismatch_score_empty() -> None:
     """Test mismatch score with empty texts."""
     score = _calculate_mismatch_score("", "some text")
     assert score == 0.0
-    
+
     score = _calculate_mismatch_score("some text", "")
     assert score == 0.0
 
@@ -113,9 +114,9 @@ def test_detect_censorship_clean() -> None:
     """Test censorship detection on clean content."""
     lyrics = "This is a beautiful song about love and happiness"
     transcription = "This is a beautiful song about love and happiness"
-    
+
     result = detect_censorship(lyrics, transcription)
-    
+
     assert isinstance(result, CensorshipResult)
     assert result.is_censored is False
     assert result.profanity_count == 0
@@ -127,9 +128,9 @@ def test_detect_censorship_censored() -> None:
     """Test censorship detection on censored content."""
     lyrics = "I want to fuck you so bad tonight"
     transcription = "Completely different words spoken here"
-    
+
     result = detect_censorship(lyrics, transcription)
-    
+
     assert isinstance(result, CensorshipResult)
     assert result.is_censored is True
     assert result.mismatch_score > 0.3
@@ -140,9 +141,9 @@ def test_detect_censorship_explicit() -> None:
     """Test censorship detection on explicit content."""
     lyrics = "Normal lyrics here"
     transcription = "Normal lyrics with damn and shit"
-    
+
     result = detect_censorship(lyrics, transcription)
-    
+
     assert isinstance(result, CensorshipResult)
     assert result.is_censored is True
     assert result.profanity_count == 2
@@ -158,7 +159,7 @@ def test_censorship_result_dataclass() -> None:
         confidence=0.8,
         details="Lyrics mismatch and profanity detected",
     )
-    
+
     assert result.is_censored is True
     assert result.mismatch_score == 0.5
     assert result.profanity_count == 3
@@ -181,9 +182,9 @@ def test_detect_censorship_threshold_boundary() -> None:
 
 def test_detect_censorship_invalid_threshold() -> None:
     """Test that invalid threshold raises ValueError."""
-    with pytest.raises(ValueError, match="threshold must be between 0.0 and 1.0"):
+    with pytest.raises(ValueError, match=r"threshold must be between 0\.0 and 1\.0"):
         detect_censorship("test", "test", threshold=-0.1)
-    with pytest.raises(ValueError, match="threshold must be between 0.0 and 1.0"):
+    with pytest.raises(ValueError, match=r"threshold must be between 0\.0 and 1\.0"):
         detect_censorship("test", "test", threshold=1.1)
 
 
