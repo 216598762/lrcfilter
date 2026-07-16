@@ -1,5 +1,7 @@
 """Metadata mismatch detection module for identifying mismatched lyrics."""
 
+from typing import Optional
+
 from rapidfuzz import fuzz
 
 from lrcfilter.config import ARTIST_MATCH_THRESHOLD, TITLE_MATCH_THRESHOLD
@@ -77,7 +79,7 @@ def detect_metadata_mismatch(
     )
 
 
-def _calculate_title_similarity(title1: str, title2: str) -> float:
+def _calculate_title_similarity(title1: Optional[str], title2: Optional[str]) -> float:
     """
     Calculate similarity between two titles.
 
@@ -103,7 +105,7 @@ def _calculate_title_similarity(title1: str, title2: str) -> float:
     return similarity / 100.0
 
 
-def _calculate_artist_similarity(artist1: str, artist2: str) -> float:
+def _calculate_artist_similarity(artist1: Optional[str], artist2: Optional[str]) -> float:
     """
     Calculate similarity between two artist names.
 

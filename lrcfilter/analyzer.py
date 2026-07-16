@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 
 
 # Thread-safe model cache
-_model_cache = {}
+_model_cache: dict[str, WhisperModel] = {}
 _model_cache_lock = threading.Lock()
 
 

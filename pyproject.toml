@@ -149,8 +149,9 @@ exclude_lines = [
 # Target Python 3.10+
 python_version = "3.10"
 
-# Exclude numpy stubs that use Python 3.12+ syntax
-exclude = ["\\.venv/lib/python.*/site-packages/numpy/"]
+# Exclude numpy stubs that use Python 3.12+ type statement syntax
+# Simple pattern to match numpy paths without complex escaping
+exclude = ["numpy"]
 
 # Strictness
 warn_return_any = true
@@ -177,6 +178,7 @@ module = [
     "lyricsgenius.*",
     "better_profanity.*",
     "rapidfuzz.*",
+    "numpy.*",
 ]
 ignore_missing_imports = true
 

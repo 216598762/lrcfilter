@@ -255,7 +255,7 @@ class TestFetchFromLrclib:
             _fetch_from_lrclib(metadata, api_delay=0)
             call_kwargs = mock_get.call_args
             assert "duration" in call_kwargs[1]["params"]
-            assert call_kwargs[1]["params"]["duration"] == 180
+            assert call_kwargs[1]["params"]["duration"] == "180"
 
     def test_handles_request_exception(self) -> None:
         """Should return None when request raises exception."""

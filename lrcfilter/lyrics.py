@@ -89,7 +89,7 @@ def _fetch_from_lrclib(
         if metadata.album:
             params["album_name"] = metadata.album
         if metadata.duration_seconds:
-            params["duration"] = int(metadata.duration_seconds)
+            params["duration"] = str(int(metadata.duration_seconds))
 
         response = requests.get(
             f"{LRCLIB_BASE_URL}/search",
