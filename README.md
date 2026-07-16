@@ -18,8 +18,14 @@ Audio analysis tool for detecting censored/explicit content, instrumental tracks
 git clone https://github.com/216598762/lrcfilter.git
 cd lrcfilter
 
-# Install in development mode
+# Install the package
+pip install .
+
+# Or install in development mode (editable install)
 pip install -e .
+
+# Install with development dependencies
+pip install -e ".[dev]"
 ```
 
 ### Requirements
@@ -30,15 +36,22 @@ pip install -e .
 
 ### Dependencies
 
-```txt
-mutagen>=1.47.0        # Audio metadata extraction
-faster-whisper>=1.0.0  # Speech recognition
-requests>=2.31.0       # HTTP requests
-lyricsgenius>=1.5.0    # Genius API integration
-rapidfuzz>=3.6.0       # Fuzzy string matching
-better-profanity>=0.7.0 # Profanity detection
-tqdm>=4.66.0           # Progress bars
-```
+All dependencies are managed in `pyproject.toml` and installed automatically:
+
+- **mutagen** - Audio metadata extraction
+- **faster-whisper** - Speech recognition
+- **requests** - HTTP requests
+- **lyricsgenius** - Genius API integration
+- **rapidfuzz** - Fuzzy string matching
+- **better-profanity** - Profanity detection
+- **tqdm** - Progress bars
+
+Development dependencies (install with `pip install -e ".[dev]"`):
+
+- **pytest** - Testing framework
+- **pytest-cov** - Coverage reporting
+- **ruff** - Linter and formatter
+- **pre-commit** - Git hooks
 
 ## Quick Start
 
@@ -365,22 +378,70 @@ File Scanner → Metadata Extractor → Lyrics Fetcher → Whisper Analyzer
 
 ```bash
 # Run all tests
-python -m pytest tests/ -v
+pytest tests/ -v
 
 # Run specific test file
-python -m pytest tests/test_config_wiring.py -v
+pytest tests/test_config_wiring.py -v
 
 # Run with coverage
-python -m pytest tests/ --cov=lrcfilter
+pytest tests/ --cov=lrcfilter
+
+# Generate coverage report
+pytest tests/ --cov=lrcfilter --cov-report=html
+```
+
+## Development
+
+### Setup Development Environment
+
+```bash
+# Clone and install with dev dependencies
+git clone https://github.com/216598762/lrcfilter.git
+cd lrcfilter
+pip install -e ".[dev]"
+
+# Install pre-commit hooks
+pre-commit install
+```
+
+### Code Quality
+
+```bash
+# Run linter
+ruff check lrcfilter/ tests/
+
+# Run formatter
+ruff format lrcfilter/ tests/
+
+# Run linter with auto-fix
+ruff check --fix lrcfilter/ tests/
+```
+
+### Pre-commit Hooks
+
+Pre-commit hooks run automatically before each commit to ensure code quality:
+- **ruff**: Linting and formatting
+- **trailing-whitespace**: Remove trailing whitespace
+- **end-of-file-fixer**: Ensure files end with newline
+- **check-yaml**: Validate YAML files
+- **check-json**: Validate JSON files
+
+To run hooks manually:
+```bash
+pre-commit run --all-files
 ```
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -S -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Install dev dependencies (`pip install -e ".[dev]"`)
+4. Make your changes
+5. Run tests (`pytest tests/ -v`)
+6. Run linter (`ruff check lrcfilter/ tests/`)
+7. Commit your changes (`git commit -S -m 'Add amazing feature'`)
+8. Push to the branch (`git push origin feature/amazing-feature`)
+9. Open a Pull Request
 
 ## License
 
