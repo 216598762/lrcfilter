@@ -82,6 +82,15 @@ class TestGetModel:
             get_model("test-model", "cuda", "int8")
             assert "test-model_cuda_int8" in _model_cache
 
+    def test_returns_cached_model_without_lock(self) -> None:
+        """Should return cached model directly, skipping lock acquisition (branch 40->53)."""
+        mock_model = MagicMock(spec=["transcribe"])
+        _model_cache["tiny_cpu_float32"] = mock_model
+
+        # Call get_model without patching WhisperModel - should return cached model
+        result = get_model("tiny", "cpu", "float32")
+        assert result is mock_model
+
     def test_thread_safety(self) -> None:
         """Should handle concurrent access safely."""
         mock_model = MagicMock(spec=["transcribe"])
@@ -396,16 +405,6 @@ class TestAnalyzeAudio:
         assert len(result.segments[1].words) == 0
         assert result.text == "Hello world No words here"
         assert result.has_speech is True
-
-    def test_uses_cache_bypasses_lock(self) -> None:
-        """Should skip lock entirely when model is already cached (outer branch)."""
-        mock_model = MagicMock(spec=["transcribe"])
-        _model_cache["tiny_cpu_float32"] = mock_model
-
-        with patch("lrcfilter.analyzer.WhisperModel") as mock_cls:
-            result = get_model("tiny", "cpu", "float32")
-            mock_cls.assert_not_called()  # Never entered lock
-            assert result is mock_model
 
     def test_single_word_segment(self) -> None:
         """Should handle segment with a single word."""
