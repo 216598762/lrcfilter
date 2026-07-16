@@ -29,12 +29,12 @@ def test_scan_supported_formats(tmp_path: Path) -> None:
 def test_scan_ignores_unsupported_formats(tmp_path: Path) -> None:
     """Test that unsupported formats are ignored."""
     # Create unsupported files
-    tmp_path / "test.txt"
-    tmp_path / "test.wav"
-    tmp_path / "test.jpg"
+    (tmp_path / "test.txt").touch()
+    (tmp_path / "test.wav").touch()
+    (tmp_path / "test.jpg").touch()
     
     # Create one supported file
-    tmp_path / "test.mp3"
+    (tmp_path / "test.mp3").touch()
     
     result = scan_audio_files(tmp_path)
     assert len(result) == 1

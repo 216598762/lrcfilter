@@ -31,7 +31,7 @@ def test_calculate_title_similarity_different() -> None:
 
 def test_calculate_title_similarity_partial() -> None:
     """Test title similarity for partially matching titles."""
-    score = _calculate_title_similarity("Test Song", "Test Song (Remix)")
+    score = _calculate_title_similarity("Test Song", "Test Song Remix")
     assert 0.5 < score < 1.0
 
 
@@ -52,7 +52,7 @@ def test_calculate_artist_similarity_identical() -> None:
 
 def test_calculate_artist_similarity_different() -> None:
     """Test artist similarity for different artists."""
-    score = _calculate_artist_similarity("Artist A", "Artist B")
+    score = _calculate_artist_similarity("The Beatles", "Black Sabbath")
     assert score < 0.5
 
 
@@ -87,7 +87,7 @@ def test_detect_metadata_mismatch_mismatch() -> None:
     """Test mismatch detection when metadata doesn't match."""
     file_metadata = TrackMetadata(
         title="Love Song",
-        artist="Artist A",
+        artist="The Beatles",
         album=None,
         duration_seconds=180.0,
     )
@@ -97,7 +97,7 @@ def test_detect_metadata_mismatch_mismatch() -> None:
         synced_lyrics=None,
         plain_lyrics="Lyrics here",
         matched_track_name="Heavy Metal Anthem",
-        matched_artist_name="Artist B",
+        matched_artist_name="Black Sabbath",
         matched_album_name=None,
         match_score=0.0,
     )

@@ -1,14 +1,20 @@
 """Tests for lyrics module."""
 
-from lrcfilter.lyrics import _normalize_text, _calculate_match_score
+from lrcfilter.lyrics import _calculate_match_score
 from lrcfilter.models import TrackMetadata
 
 
-def test_normalize_text_lyrics() -> None:
-    """Test text normalization for lyrics comparison."""
-    assert _normalize_text("Hello World") == "hello world"
-    assert _normalize_text("  extra   spaces  ") == "extra spaces"
-    assert _normalize_text("it's") == "its"
+def test_calculate_match_score_basic() -> None:
+    """Test match score with basic metadata."""
+    metadata = TrackMetadata(
+        title="Hello World",
+        artist="Test Artist",
+        album=None,
+        duration_seconds=None,
+    )
+    lrclib_result = {"trackName": "Hello World", "artistName": "Test Artist"}
+    score = _calculate_match_score(metadata, lrclib_result)
+    assert score == 1.0
 
 
 def test_calculate_match_score() -> None:

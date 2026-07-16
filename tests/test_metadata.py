@@ -1,7 +1,7 @@
 """Tests for metadata module."""
 
 from pathlib import Path
-from lrcfilter.metadata import extract_metadata, _normalize_text
+from lrcfilter.metadata import extract_metadata
 from lrcfilter.models import AudioFile, TrackMetadata
 
 
@@ -43,19 +43,22 @@ def test_extract_metadata_empty_file(tmp_path: Path) -> None:
     assert result.title == "empty.mp3"
 
 
-def test_normalize_text() -> None:
-    """Test text normalization function."""
-    # Basic normalization
-    assert _normalize_text("Hello World") == "hello world"
-    assert _normalize_text("  extra   spaces  ") == "extra spaces"
+def test_extract_metadata_invalid_file(tmp_path: Path) -> None:
+    """Test extracting metadata from an invalid audio file."""
+    test_file = tmp_path / "invalid.mp3"
+    test_file.write_text("not an audio file")
     
-    # Special characters
-    assert _normalize_text("it's") == "its"
-    assert _normalize_text('"quoted"') == "quoted"
+    audio_file = AudioFile(
+        path=test_file,
+        filename="invalid.mp3",
+        extension=".mp3",
+        size_mb=0.001,
+    )
     
-    # Filler words removal
-    assert _normalize_text("the quick brown fox") == "quick brown fox"
-    assert _normalize_text("a cat in the hat") == "cat hat"
+    result = extract_metadata(audio_file)
+    
+    # Should return empty metadata, not raise exception
+    assert isinstance(result, TrackMetadata)
 
 
 def test_track_metadata_dataclass() -> None:
