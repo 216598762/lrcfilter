@@ -1,6 +1,6 @@
 # Multi-stage build for lrcfilter
 # Stage 1: Builder
-FROM python:3.11-slim as builder
+FROM python:3.14-slim as builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY --chown=root:root . /app
 RUN pip install --no-cache-dir --prefix=/install .
 
 # Stage 2: Runtime
-FROM python:3.11-slim as runtime
+FROM python:3.14-slim as runtime
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
