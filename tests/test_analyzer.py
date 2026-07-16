@@ -369,3 +369,96 @@ class TestAnalyzeAudio:
 
         # Empty text after stripping still counts as speech (segment exists)
         assert result.has_speech is True
+
+    def test_mixed_segments_with_and_without_words(self) -> None:
+        """Should handle a mix of segments with and without word timestamps."""
+        audio_file = self._make_audio_file()
+
+        # Segment with words
+        mock_word = self._make_mock_word("Hello", 0.0, 0.5, 0.99)
+        mock_segment1 = self._make_mock_segment("Hello world", 0.0, 2.0, [mock_word])
+        
+        # Segment without words
+        mock_segment2 = self._make_mock_segment("No words here", 2.0, 4.0, words=None)
+        
+        mock_info = MagicMock()
+        mock_info.language = "en"
+        mock_info.duration = 10.0
+
+        mock_model = MagicMock()
+        mock_model.transcribe.return_value = ([mock_segment1, mock_segment2], mock_info)
+
+        with patch("lrcfilter.analyzer.get_model", return_value=mock_model):
+            result = analyze_audio(audio_file)
+
+        assert len(result.segments) == 2
+        assert len(result.segments[0].words) == 1
+        assert len(result.segments[1].words) == 0
+        assert result.text == "Hello world No words here"
+        assert result.has_speech is True
+
+    def test_uses_cache_bypasses_lock(self) -> None:
+        """Should skip lock entirely when model is already cached (outer branch)."""
+        mock_model = MagicMock(spec=["transcribe"])
+        _model_cache["tiny_cpu_float32"] = mock_model
+
+        with patch("lrcfilter.analyzer.WhisperModel") as mock_cls:
+            result = get_model("tiny", "cpu", "float32")
+            mock_cls.assert_not_called()  # Never entered lock
+            assert result is mock_model
+
+    def test_single_word_segment(self) -> None:
+        """Should handle segment with a single word."""
+        audio_file = self._make_audio_file()
+
+        mock_word = self._make_mock_word("Yes", 0.0, 0.3, 0.98)
+        mock_segment = self._make_mock_segment("Yes", 0.0, 0.3, [mock_word])
+        mock_info = MagicMock()
+        mock_info.language = "en"
+        mock_info.duration = 1.0
+
+        mock_model = MagicMock()
+        mock_model.transcribe.return_value = ([mock_segment], mock_info)
+
+        with patch("lrcfilter.analyzer.get_model", return_value=mock_model):
+            result = analyze_audio(audio_file)
+
+        assert result.text == "Yes"
+        assert len(result.segments) == 1
+        assert result.segments[0].words[0].word == "Yes"
+
+    def test_segment_text_with_leading_trailing_whitespace(self) -> None:
+        """Should strip whitespace from segment text when joining."""
+        audio_file = self._make_audio_file()
+
+        mock_segment1 = self._make_mock_segment("  Hello  ", 0.0, 1.0)
+        mock_segment2 = self._make_mock_segment("  world  ", 1.0, 2.0)
+        mock_info = MagicMock()
+        mock_info.language = "en"
+        mock_info.duration = 5.0
+
+        mock_model = MagicMock()
+        mock_model.transcribe.return_value = ([mock_segment1, mock_segment2], mock_info)
+
+        with patch("lrcfilter.analyzer.get_model", return_value=mock_model):
+            result = analyze_audio(audio_file)
+
+        assert result.text == "Hello world"
+
+    def test_model_loading_logs_info(self) -> None:
+        """Should log info when loading model."""
+        mock_model = MagicMock(spec=["transcribe"])
+
+        with patch("lrcfilter.analyzer.WhisperModel", return_value=mock_model):
+            with patch("lrcfilter.analyzer.logger") as mock_logger:
+                get_model("tiny", "cpu", "float32")
+                mock_logger.info.assert_any_call("Loading Whisper model 'tiny' on cpu...")
+                mock_logger.info.assert_any_call("Model loaded successfully.")
+
+    def test_model_creation_failure_logs_error(self) -> None:
+        """Should log error when model creation fails."""
+        with patch("lrcfilter.analyzer.WhisperModel", side_effect=RuntimeError("CUDA error")):
+            with patch("lrcfilter.analyzer.logger") as mock_logger:
+                with pytest.raises(RuntimeError):
+                    get_model("large-v3", "cuda", "float16")
+                mock_logger.error.assert_called_once()
