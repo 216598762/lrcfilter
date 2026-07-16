@@ -52,23 +52,14 @@ def detect_metadata_mismatch(
         lyrics_result.matched_artist_name,
     )
     
-    # Duration difference (None if not available)
-    duration_difference = _calculate_duration_difference(
-        file_metadata.duration_seconds,
-    )
-    
     # Determine if mismatch
-    has_duration_mismatch = (
-        duration_difference is not None and duration_difference > duration_tolerance
-    )
     is_mismatch = (
         title_score < title_threshold or
-        artist_score < artist_threshold or
-        has_duration_mismatch
+        artist_score < artist_threshold
     )
     
     # Calculate confidence
-    confidence = _calculate_confidence(title_score, artist_score, duration_difference)
+    confidence = _calculate_confidence(title_score, artist_score)
     
     # Generate details
     details = _generate_details(
@@ -76,16 +67,14 @@ def detect_metadata_mismatch(
         lyrics_result,
         title_score,
         artist_score,
-        duration_difference,
         is_mismatch,
-        duration_tolerance,
     )
     
     return MismatchResult(
         is_mismatch=is_mismatch,
         title_score=title_score,
         artist_score=artist_score,
-        duration_difference=duration_difference or 0.0,
+        duration_difference=0.0,
         confidence=confidence,
         details=details,
     )
@@ -143,29 +132,9 @@ def _calculate_artist_similarity(artist1: str, artist2: str) -> float:
     return similarity / 100.0
 
 
-def _calculate_duration_difference(
-    file_duration: float,
-) -> float:
-    """
-    Calculate duration difference between file and lyrics.
-    
-    Note: LyricsResult doesn't currently include duration, so this
-    always returns None until duration is added to LyricsResult.
-    
-    Args:
-        file_duration: Duration from audio file
-        
-    Returns:
-        Duration difference in seconds, or None if not available
-    """
-    # LyricsResult doesn't have duration yet - return None for now
-    return None
-
-
 def _calculate_confidence(
     title_score: float,
     artist_score: float,
-    duration_difference: float,
 ) -> float:
     """
     Calculate confidence score for mismatch detection.
@@ -173,7 +142,6 @@ def _calculate_confidence(
     Args:
         title_score: Title similarity score
         artist_score: Artist similarity score
-        duration_difference: Duration difference in seconds
         
     Returns:
         Confidence score between 0.0 and 1.0
@@ -182,13 +150,8 @@ def _calculate_confidence(
     title_confidence = 1.0 - title_score
     artist_confidence = 1.0 - artist_score
     
-    # Duration difference contribution
-    duration_confidence = 0.0
-    if duration_difference is not None:
-        duration_confidence = min(duration_difference / 60.0, 1.0)
-    
-    # Weighted average
-    return (title_confidence * 0.4 + artist_confidence * 0.4 + duration_confidence * 0.2)
+    # Weighted average (title and artist equally weighted)
+    return (title_confidence * 0.5 + artist_confidence * 0.5)
 
 
 def _generate_details(
@@ -196,9 +159,7 @@ def _generate_details(
     lyrics_result: LyricsResult,
     title_score: float,
     artist_score: float,
-    duration_difference: float,
     is_mismatch: bool,
-    duration_tolerance: float = DURATION_TOLERANCE,
 ) -> str:
     """
     Generate human-readable details about metadata mismatch.
@@ -208,7 +169,6 @@ def _generate_details(
         lyrics_result: Lyrics result
         title_score: Title similarity
         artist_score: Artist similarity
-        duration_difference: Duration difference
         is_mismatch: Whether mismatch was detected
         
     Returns:
@@ -226,8 +186,5 @@ def _generate_details(
     file_artist = file_metadata.artist or "Unknown"
     lyrics_artist = lyrics_result.matched_artist_name or "Unknown"
     parts.append(f"Artist: '{file_artist}' vs '{lyrics_artist}' ({artist_score:.0%} match)")
-    
-    if duration_difference is not None and duration_difference > duration_tolerance:
-        parts.append(f"Duration differs by {duration_difference:.1f}s")
     
     return "; ".join(parts)

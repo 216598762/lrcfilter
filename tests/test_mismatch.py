@@ -7,7 +7,6 @@ from lrcfilter.mismatch import (
     _calculate_title_similarity,
     _calculate_artist_similarity,
     _calculate_confidence,
-    _calculate_duration_difference,
     _generate_details,
 )
 from lrcfilter.models import TrackMetadata, LyricsResult, MismatchResult
@@ -197,27 +196,15 @@ def test_invalid_duration_tolerance() -> None:
         detect_metadata_mismatch(file_metadata, lyrics_result, duration_tolerance=-1.0)
 
 
-def test_calculate_duration_difference_returns_none() -> None:
-    """Test that _calculate_duration_difference always returns None."""
-    assert _calculate_duration_difference(180.0) is None
-    assert _calculate_duration_difference(None) is None
-
-
-def test_calculate_confidence_with_none_duration() -> None:
-    """Test _calculate_confidence when duration_difference is None."""
-    confidence = _calculate_confidence(0.8, 0.9, None)
-    assert 0.0 <= confidence <= 1.0
-
-
-def test_calculate_confidence_with_duration() -> None:
-    """Test _calculate_confidence when duration_difference is not None."""
-    confidence = _calculate_confidence(0.8, 0.9, 30.0)
+def test_calculate_confidence() -> None:
+    """Test _calculate_confidence with various scores."""
+    confidence = _calculate_confidence(0.8, 0.9)
     assert 0.0 <= confidence <= 1.0
 
 
 def test_calculate_confidence_low_scores() -> None:
     """Test _calculate_confidence with low similarity scores (high mismatch)."""
-    confidence = _calculate_confidence(0.1, 0.1, 0.0)
+    confidence = _calculate_confidence(0.1, 0.1)
     assert confidence > 0.5  # Low similarity = high confidence in mismatch
 
 
@@ -227,29 +214,19 @@ def test_generate_details_match() -> None:
     lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
                                   matched_track_name="Song", matched_artist_name="Artist",
                                   matched_album_name=None, match_score=1.0)
-    details = _generate_details(file_metadata, lyrics_result, 1.0, 1.0, None, False)
+    details = _generate_details(file_metadata, lyrics_result, 1.0, 1.0, False)
     assert details == "Metadata matches lyrics"
 
 
-def test_generate_details_mismatch_with_duration() -> None:
-    """Test _generate_details with duration difference."""
+def test_generate_details_mismatch() -> None:
+    """Test _generate_details with mismatch."""
     file_metadata = TrackMetadata(title="Song", artist="Artist", album=None, duration_seconds=180.0)
     lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
                                   matched_track_name="Other", matched_artist_name="Other",
                                   matched_album_name=None, match_score=0.0)
-    details = _generate_details(file_metadata, lyrics_result, 0.3, 0.4, 90.0, True, duration_tolerance=30.0)
-    assert "Duration" in details
-    assert "90.0" in details
-
-
-def test_generate_details_no_duration_difference() -> None:
-    """Test _generate_details without duration difference."""
-    file_metadata = TrackMetadata(title="Song", artist="Artist", album=None, duration_seconds=180.0)
-    lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
-                                  matched_track_name="Other", matched_artist_name="Other",
-                                  matched_album_name=None, match_score=0.0)
-    details = _generate_details(file_metadata, lyrics_result, 0.3, 0.4, None, True)
-    assert "Duration" not in details
+    details = _generate_details(file_metadata, lyrics_result, 0.3, 0.4, True)
+    assert "File:" in details
+    assert "Artist:" in details
 
 
 def test_calculate_title_similarity_none_values() -> None:
@@ -262,3 +239,19 @@ def test_calculate_artist_similarity_none_values() -> None:
     """Test _calculate_artist_similarity with None values."""
     assert _calculate_artist_similarity(None, "Artist") == 0.0
     assert _calculate_artist_similarity("Artist", None) == 0.0
+
+
+def test_calculate_title_similarity_normalizes_to_empty() -> None:
+    """Test _calculate_title_similarity when normalization yields empty strings."""
+    # "(Remix)" normalizes to "" after suffix removal
+    assert _calculate_title_similarity("(Remix)", "Test Song") == 0.0
+    assert _calculate_title_similarity("Test Song", "(Live)") == 0.0
+    assert _calculate_title_similarity("(Acoustic)", "(Remix)") == 0.0
+
+
+def test_calculate_artist_similarity_normalizes_to_empty() -> None:
+    """Test _calculate_artist_similarity when normalization yields empty strings."""
+    # "(Remix)" normalizes to "" after suffix removal
+    assert _calculate_artist_similarity("(Remix)", "Test Artist") == 0.0
+    assert _calculate_artist_similarity("Test Artist", "(Live)") == 0.0
+    assert _calculate_artist_similarity("(Acoustic)", "(Remix)") == 0.0
