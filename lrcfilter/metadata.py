@@ -41,18 +41,17 @@ def extract_metadata(audio_file: AudioFile) -> TrackMetadata:
         if mutagen_file.info and hasattr(mutagen_file.info, 'length'):
             duration = mutagen_file.info.length
         
-        # Extract tags based on file type
-        if isinstance(mutagen_file, MutagenFile):
-            tags = mutagen_file.tags
+        # Extract tags from the mutagen file
+        tags = mutagen_file.tags
+        
+        if tags:
+            # Store all raw tags
+            raw_tags = {k: str(v) for k, v in tags.items()}
             
-            if tags:
-                # Store all raw tags
-                raw_tags = {k: str(v) for k, v in tags.items()}
-                
-                # Extract common fields
-                title = _get_tag_value(tags, ['TIT2', 'title'])
-                artist = _get_tag_value(tags, ['TPE1', 'artist'])
-                album = _get_tag_value(tags, ['TALB', 'album'])
+            # Extract common fields
+            title = _get_tag_value(tags, ['TIT2', 'title'])
+            artist = _get_tag_value(tags, ['TPE1', 'artist'])
+            album = _get_tag_value(tags, ['TALB', 'album'])
         
         return TrackMetadata(
             title=title,
