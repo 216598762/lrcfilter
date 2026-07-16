@@ -1,9 +1,14 @@
 """Tests for mismatch module."""
 
+import pytest
+
 from lrcfilter.mismatch import (
     detect_metadata_mismatch,
     _calculate_title_similarity,
     _calculate_artist_similarity,
+    _calculate_confidence,
+    _calculate_duration_difference,
+    _generate_details,
 )
 from lrcfilter.models import TrackMetadata, LyricsResult, MismatchResult
 from lrcfilter.utils import normalize_for_mismatch
@@ -156,3 +161,104 @@ def test_mismatch_result_dataclass() -> None:
     assert result.duration_difference == 45.0
     assert result.confidence == 0.8
     assert result.details == "Title and artist mismatch"
+
+
+def test_invalid_title_threshold() -> None:
+    """Test that invalid title_threshold raises ValueError."""
+    file_metadata = TrackMetadata(title="Song", artist="Artist", album=None, duration_seconds=180.0)
+    lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
+                                  matched_track_name="Song", matched_artist_name="Artist",
+                                  matched_album_name=None, match_score=1.0)
+    with pytest.raises(ValueError, match="title_threshold must be between 0.0 and 1.0"):
+        detect_metadata_mismatch(file_metadata, lyrics_result, title_threshold=-0.1)
+    with pytest.raises(ValueError, match="title_threshold must be between 0.0 and 1.0"):
+        detect_metadata_mismatch(file_metadata, lyrics_result, title_threshold=1.1)
+
+
+def test_invalid_artist_threshold() -> None:
+    """Test that invalid artist_threshold raises ValueError."""
+    file_metadata = TrackMetadata(title="Song", artist="Artist", album=None, duration_seconds=180.0)
+    lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
+                                  matched_track_name="Song", matched_artist_name="Artist",
+                                  matched_album_name=None, match_score=1.0)
+    with pytest.raises(ValueError, match="artist_threshold must be between 0.0 and 1.0"):
+        detect_metadata_mismatch(file_metadata, lyrics_result, artist_threshold=-0.1)
+    with pytest.raises(ValueError, match="artist_threshold must be between 0.0 and 1.0"):
+        detect_metadata_mismatch(file_metadata, lyrics_result, artist_threshold=1.1)
+
+
+def test_invalid_duration_tolerance() -> None:
+    """Test that negative duration_tolerance raises ValueError."""
+    file_metadata = TrackMetadata(title="Song", artist="Artist", album=None, duration_seconds=180.0)
+    lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
+                                  matched_track_name="Song", matched_artist_name="Artist",
+                                  matched_album_name=None, match_score=1.0)
+    with pytest.raises(ValueError, match="duration_tolerance must be non-negative"):
+        detect_metadata_mismatch(file_metadata, lyrics_result, duration_tolerance=-1.0)
+
+
+def test_calculate_duration_difference_returns_none() -> None:
+    """Test that _calculate_duration_difference always returns None."""
+    assert _calculate_duration_difference(180.0) is None
+    assert _calculate_duration_difference(None) is None
+
+
+def test_calculate_confidence_with_none_duration() -> None:
+    """Test _calculate_confidence when duration_difference is None."""
+    confidence = _calculate_confidence(0.8, 0.9, None)
+    assert 0.0 <= confidence <= 1.0
+
+
+def test_calculate_confidence_with_duration() -> None:
+    """Test _calculate_confidence when duration_difference is not None."""
+    confidence = _calculate_confidence(0.8, 0.9, 30.0)
+    assert 0.0 <= confidence <= 1.0
+
+
+def test_calculate_confidence_low_scores() -> None:
+    """Test _calculate_confidence with low similarity scores (high mismatch)."""
+    confidence = _calculate_confidence(0.1, 0.1, 0.0)
+    assert confidence > 0.5  # Low similarity = high confidence in mismatch
+
+
+def test_generate_details_match() -> None:
+    """Test _generate_details when there's no mismatch."""
+    file_metadata = TrackMetadata(title="Song", artist="Artist", album=None, duration_seconds=180.0)
+    lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
+                                  matched_track_name="Song", matched_artist_name="Artist",
+                                  matched_album_name=None, match_score=1.0)
+    details = _generate_details(file_metadata, lyrics_result, 1.0, 1.0, None, False)
+    assert details == "Metadata matches lyrics"
+
+
+def test_generate_details_mismatch_with_duration() -> None:
+    """Test _generate_details with duration difference."""
+    file_metadata = TrackMetadata(title="Song", artist="Artist", album=None, duration_seconds=180.0)
+    lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
+                                  matched_track_name="Other", matched_artist_name="Other",
+                                  matched_album_name=None, match_score=0.0)
+    details = _generate_details(file_metadata, lyrics_result, 0.3, 0.4, 90.0, True, duration_tolerance=30.0)
+    assert "Duration" in details
+    assert "90.0" in details
+
+
+def test_generate_details_no_duration_difference() -> None:
+    """Test _generate_details without duration difference."""
+    file_metadata = TrackMetadata(title="Song", artist="Artist", album=None, duration_seconds=180.0)
+    lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
+                                  matched_track_name="Other", matched_artist_name="Other",
+                                  matched_album_name=None, match_score=0.0)
+    details = _generate_details(file_metadata, lyrics_result, 0.3, 0.4, None, True)
+    assert "Duration" not in details
+
+
+def test_calculate_title_similarity_none_values() -> None:
+    """Test _calculate_title_similarity with None values."""
+    assert _calculate_title_similarity(None, "Song") == 0.0
+    assert _calculate_title_similarity("Song", None) == 0.0
+
+
+def test_calculate_artist_similarity_none_values() -> None:
+    """Test _calculate_artist_similarity with None values."""
+    assert _calculate_artist_similarity(None, "Artist") == 0.0
+    assert _calculate_artist_similarity("Artist", None) == 0.0
