@@ -1,6 +1,5 @@
 """Configuration constants for LRCFilter."""
 
-
 # Supported audio formats
 SUPPORTED_FORMATS = {".flac", ".mp3", ".m4a", ".ogg", ".opus"}
 
@@ -15,9 +14,9 @@ MIN_WORDS_FOR_VOCALS = 10
 MIN_SPEECH_DURATION = 5.0
 
 # Metadata mismatch detection thresholds
-TITLE_MATCH_THRESHOLD = 0.6    # Below 60% = potential mismatch
-ARTIST_MATCH_THRESHOLD = 0.7   # Below 70% = potential mismatch
-DURATION_TOLERANCE = 30.0      # 30 seconds difference tolerance
+TITLE_MATCH_THRESHOLD = 0.6  # Below 60% = potential mismatch
+ARTIST_MATCH_THRESHOLD = 0.7  # Below 70% = potential mismatch
+DURATION_TOLERANCE = 30.0  # 30 seconds difference tolerance
 
 # API settings
 LRCLIB_BASE_URL = "https://lrclib.net/api"

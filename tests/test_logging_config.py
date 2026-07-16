@@ -4,8 +4,7 @@ import logging
 import sys
 from pathlib import Path
 
-
-from lrcfilter.logging_config import setup_logging, get_logger
+from lrcfilter.logging_config import get_logger, setup_logging
 
 
 class TestSetupLogging:
@@ -49,12 +48,12 @@ class TestSetupLogging:
         setup_logging()
         root_logger = logging.getLogger("lrcfilter")
         for handler in root_logger.handlers:
-            if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
+            if isinstance(handler, logging.StreamHandler) and not isinstance(
+                handler, logging.FileHandler
+            ):
                 assert handler.stream is sys.stdout
 
-    def test_creates_file_handler_when_log_file_provided(
-        self, tmp_path: Path
-    ) -> None:
+    def test_creates_file_handler_when_log_file_provided(self, tmp_path: Path) -> None:
         """Should add a file handler when log_file is provided."""
         log_file = tmp_path / "test.log"
         setup_logging(log_file=log_file)
@@ -62,9 +61,7 @@ class TestSetupLogging:
         file_handlers = [h for h in root_logger.handlers if isinstance(h, logging.FileHandler)]
         assert len(file_handlers) >= 1
 
-    def test_file_handler_always_logs_debug(
-        self, tmp_path: Path
-    ) -> None:
+    def test_file_handler_always_logs_debug(self, tmp_path: Path) -> None:
         """File handler should always log at DEBUG level regardless of console level."""
         log_file = tmp_path / "test.log"
         setup_logging(log_file=log_file)
@@ -73,9 +70,7 @@ class TestSetupLogging:
             if isinstance(handler, logging.FileHandler):
                 assert handler.level == logging.DEBUG
 
-    def test_log_file_parent_directory_created(
-        self, tmp_path: Path
-    ) -> None:
+    def test_log_file_parent_directory_created(self, tmp_path: Path) -> None:
         """Should create parent directories for log file if they don't exist."""
         log_file = tmp_path / "subdir" / "deep" / "test.log"
         setup_logging(log_file=log_file)

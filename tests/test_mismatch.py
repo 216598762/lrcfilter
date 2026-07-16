@@ -165,9 +165,15 @@ def test_mismatch_result_dataclass() -> None:
 def test_invalid_title_threshold() -> None:
     """Test that invalid title_threshold raises ValueError."""
     file_metadata = TrackMetadata(title="Song", artist="Artist", album=None, duration_seconds=180.0)
-    lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
-                                  matched_track_name="Song", matched_artist_name="Artist",
-                                  matched_album_name=None, match_score=1.0)
+    lyrics_result = LyricsResult(
+        source="lrclib",
+        synced_lyrics=None,
+        plain_lyrics="",
+        matched_track_name="Song",
+        matched_artist_name="Artist",
+        matched_album_name=None,
+        match_score=1.0,
+    )
     with pytest.raises(ValueError, match=r"title_threshold must be between 0\.0 and 1\.0"):
         detect_metadata_mismatch(file_metadata, lyrics_result, title_threshold=-0.1)
     with pytest.raises(ValueError, match=r"title_threshold must be between 0\.0 and 1\.0"):
@@ -177,9 +183,15 @@ def test_invalid_title_threshold() -> None:
 def test_invalid_artist_threshold() -> None:
     """Test that invalid artist_threshold raises ValueError."""
     file_metadata = TrackMetadata(title="Song", artist="Artist", album=None, duration_seconds=180.0)
-    lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
-                                  matched_track_name="Song", matched_artist_name="Artist",
-                                  matched_album_name=None, match_score=1.0)
+    lyrics_result = LyricsResult(
+        source="lrclib",
+        synced_lyrics=None,
+        plain_lyrics="",
+        matched_track_name="Song",
+        matched_artist_name="Artist",
+        matched_album_name=None,
+        match_score=1.0,
+    )
     with pytest.raises(ValueError, match=r"artist_threshold must be between 0\.0 and 1\.0"):
         detect_metadata_mismatch(file_metadata, lyrics_result, artist_threshold=-0.1)
     with pytest.raises(ValueError, match=r"artist_threshold must be between 0\.0 and 1\.0"):
@@ -189,9 +201,15 @@ def test_invalid_artist_threshold() -> None:
 def test_invalid_duration_tolerance() -> None:
     """Test that negative duration_tolerance raises ValueError."""
     file_metadata = TrackMetadata(title="Song", artist="Artist", album=None, duration_seconds=180.0)
-    lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
-                                  matched_track_name="Song", matched_artist_name="Artist",
-                                  matched_album_name=None, match_score=1.0)
+    lyrics_result = LyricsResult(
+        source="lrclib",
+        synced_lyrics=None,
+        plain_lyrics="",
+        matched_track_name="Song",
+        matched_artist_name="Artist",
+        matched_album_name=None,
+        match_score=1.0,
+    )
     with pytest.raises(ValueError, match="duration_tolerance must be non-negative"):
         detect_metadata_mismatch(file_metadata, lyrics_result, duration_tolerance=-1.0)
 
@@ -211,9 +229,15 @@ def test_calculate_confidence_low_scores() -> None:
 def test_generate_details_match() -> None:
     """Test _generate_details when there's no mismatch."""
     file_metadata = TrackMetadata(title="Song", artist="Artist", album=None, duration_seconds=180.0)
-    lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
-                                  matched_track_name="Song", matched_artist_name="Artist",
-                                  matched_album_name=None, match_score=1.0)
+    lyrics_result = LyricsResult(
+        source="lrclib",
+        synced_lyrics=None,
+        plain_lyrics="",
+        matched_track_name="Song",
+        matched_artist_name="Artist",
+        matched_album_name=None,
+        match_score=1.0,
+    )
     details = _generate_details(file_metadata, lyrics_result, 1.0, 1.0, False)
     assert details == "Metadata matches lyrics"
 
@@ -221,9 +245,15 @@ def test_generate_details_match() -> None:
 def test_generate_details_mismatch() -> None:
     """Test _generate_details with mismatch."""
     file_metadata = TrackMetadata(title="Song", artist="Artist", album=None, duration_seconds=180.0)
-    lyrics_result = LyricsResult(source="lrclib", synced_lyrics=None, plain_lyrics="",
-                                  matched_track_name="Other", matched_artist_name="Other",
-                                  matched_album_name=None, match_score=0.0)
+    lyrics_result = LyricsResult(
+        source="lrclib",
+        synced_lyrics=None,
+        plain_lyrics="",
+        matched_track_name="Other",
+        matched_artist_name="Other",
+        matched_album_name=None,
+        match_score=0.0,
+    )
     details = _generate_details(file_metadata, lyrics_result, 0.3, 0.4, True)
     assert "File:" in details
     assert "Artist:" in details

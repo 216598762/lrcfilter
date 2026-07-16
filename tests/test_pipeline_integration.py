@@ -1,7 +1,7 @@
 """Integration tests for the full pipeline with mocked dependencies."""
 
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 from unittest.mock import patch
 
 import pytest
@@ -26,6 +26,7 @@ from lrcfilter.pipeline import (
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def tmp_audio_dir(tmp_path: Path) -> Path:
@@ -59,7 +60,7 @@ def _make_audio_file(path: Path) -> AudioFile:
 
 def _make_transcription(
     text: str = "",
-    segments: Optional[List[Segment]] = None,
+    segments: Optional[list[Segment]] = None,
     has_speech: bool = True,
     duration: float = 180.0,
 ) -> TranscriptionResult:
@@ -134,7 +135,7 @@ _LONG_TRANSCRIPTION = _make_transcription(_LONG_TRANSCRIPTION_TEXT)
 
 
 def _run_mocked_pipeline(
-    audio_files: List[AudioFile],
+    audio_files: list[AudioFile],
     config: PipelineConfig,
     metadata: Optional[TrackMetadata] = None,
     lyrics: Optional[LyricsResult] = "__SENTINEL__",
@@ -188,7 +189,9 @@ class TestPipelineCleanContent:
             "This is a clean test song about happiness that has many words here"
         )
 
-        result = _run_mocked_pipeline(audio_files, config, lyrics=lyrics, transcription=transcription)
+        result = _run_mocked_pipeline(
+            audio_files, config, lyrics=lyrics, transcription=transcription
+        )
 
         assert result.total_files == 1
         assert result.processed_files == 1
@@ -251,7 +254,9 @@ class TestPipelineCensoredContent:
             "Normal lyrics with damn and shit words here that are many"
         )
 
-        result = _run_mocked_pipeline(audio_files, config, lyrics=lyrics, transcription=transcription)
+        result = _run_mocked_pipeline(
+            audio_files, config, lyrics=lyrics, transcription=transcription
+        )
 
         assert result.processed_files == 1
         assert len(result.censored_tracks) == 1
@@ -276,7 +281,9 @@ class TestPipelineCensoredContent:
         content = output_file.read_text(encoding="utf-8")
         assert "censored_song.mp3" in content
 
-    def test_lyrics_mismatch_triggers_censorship(self, tmp_audio_dir: Path, output_dir: Path) -> None:
+    def test_lyrics_mismatch_triggers_censorship(
+        self, tmp_audio_dir: Path, output_dir: Path
+    ) -> None:
         audio_files = [_make_audio_file(tmp_audio_dir / "censored_song.mp3")]
         config = PipelineConfig(output_dir=output_dir)
 
@@ -289,7 +296,9 @@ class TestPipelineCensoredContent:
             "Completely different spoken words that do not match the lyrics at all"
         )
 
-        result = _run_mocked_pipeline(audio_files, config, lyrics=lyrics, transcription=transcription)
+        result = _run_mocked_pipeline(
+            audio_files, config, lyrics=lyrics, transcription=transcription
+        )
 
         assert len(result.censored_tracks) == 1
         _, censorship = result.censored_tracks[0]
@@ -302,9 +311,7 @@ class TestPipelineCensoredContent:
         from lrcfilter.output import write_results
 
         lyrics = _make_lyrics(plain_lyrics="Clean")
-        transcription = _make_transcription(
-            "This has damn and shit words here and many more"
-        )
+        transcription = _make_transcription("This has damn and shit words here and many more")
 
         censorship = detect_censorship(lyrics.plain_lyrics, transcription.text)
         write_results(
@@ -373,7 +380,7 @@ class TestPipelineInstrumentalContent:
         )
 
         assert len(result.instrumental_tracks) == 1
-        audio_file, instrumental = result.instrumental_tracks[0]
+        _audio_file, instrumental = result.instrumental_tracks[0]
         assert instrumental.is_instrumental is True
         assert instrumental.word_count == 3
 
@@ -461,9 +468,7 @@ class TestPipelineNoLyrics:
             "Some spoken words here that are long enough to pass the threshold"
         )
 
-        result = _run_mocked_pipeline(
-            audio_files, config, lyrics=None, transcription=transcription
-        )
+        result = _run_mocked_pipeline(audio_files, config, lyrics=None, transcription=transcription)
 
         assert result.processed_files == 1
         track = result.track_results[0]
@@ -481,9 +486,7 @@ class TestPipelineNoLyrics:
             "Some words here that are long enough to pass the threshold check"
         )
 
-        result = _run_mocked_pipeline(
-            audio_files, config, lyrics=None, transcription=transcription
-        )
+        result = _run_mocked_pipeline(audio_files, config, lyrics=None, transcription=transcription)
 
         assert len(result.metadata_mismatches) == 0
 
@@ -506,7 +509,9 @@ class TestPipelineMultipleTracks:
         config = PipelineConfig(output_dir=output_dir)
 
         # Track 1: clean lyrics that match transcription (needs 10+ words)
-        clean_lyrics = _make_lyrics(plain_lyrics="Happy clean lyrics here that are many words and more")
+        clean_lyrics = _make_lyrics(
+            plain_lyrics="Happy clean lyrics here that are many words and more"
+        )
         clean_transcription = _make_transcription(
             "Happy clean lyrics here that are many words and more"
         )
@@ -519,9 +524,7 @@ class TestPipelineMultipleTracks:
 
         # Track 3: instrumental (no speech)
         instrumental_lyrics = _make_lyrics(plain_lyrics=None)
-        instrumental_transcription = _make_transcription(
-            "", segments=[], has_speech=False
-        )
+        instrumental_transcription = _make_transcription("", segments=[], has_speech=False)
 
         metadata = _make_metadata()
         track_index = 0
@@ -533,7 +536,11 @@ class TestPipelineMultipleTracks:
 
         def mock_analyze_audio(audio_file: AudioFile, **kwargs) -> TranscriptionResult:
             nonlocal track_index
-            transcriptions = [clean_transcription, censored_transcription, instrumental_transcription]
+            transcriptions = [
+                clean_transcription,
+                censored_transcription,
+                instrumental_transcription,
+            ]
             result = transcriptions[track_index % len(transcriptions)]
             track_index += 1
             return result
@@ -641,9 +648,7 @@ class TestPipelineConfigOptions:
         config = PipelineConfig(output_dir=output_dir, no_censored=True)
 
         lyrics = _make_lyrics(plain_lyrics="Clean")
-        transcription = _make_transcription(
-            "Words with damn in them that are many and long"
-        )
+        transcription = _make_transcription("Words with damn in them that are many and long")
 
         _run_mocked_pipeline(audio_files, config, lyrics=lyrics, transcription=transcription)
 
@@ -686,11 +691,11 @@ class TestPipelineConfigOptions:
         )
 
         lyrics = _make_lyrics(plain_lyrics="Some lyrics here that are many words")
-        transcription = _make_transcription(
-            "Slightly different lyrics here that are many words"
-        )
+        transcription = _make_transcription("Slightly different lyrics here that are many words")
 
-        result = _run_mocked_pipeline(audio_files, config, lyrics=lyrics, transcription=transcription)
+        result = _run_mocked_pipeline(
+            audio_files, config, lyrics=lyrics, transcription=transcription
+        )
 
         # With high threshold, slight mismatch should NOT trigger censorship
         assert len(result.censored_tracks) == 0
@@ -740,9 +745,7 @@ class TestPipelineEdgeCases:
             call_count += 1
             if call_count == 1:
                 raise RuntimeError("Simulated transcription failure")
-            return _make_transcription(
-                "Normal lyrics here that are long enough to pass the check"
-            )
+            return _make_transcription("Normal lyrics here that are long enough to pass the check")
 
         with (
             patch("lrcfilter.pipeline.scan_audio_files", return_value=audio_files),

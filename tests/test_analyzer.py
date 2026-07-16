@@ -49,7 +49,9 @@ class TestGetModel:
         mock_model1 = MagicMock(spec=["transcribe"])
         mock_model2 = MagicMock(spec=["transcribe"])
 
-        with patch("lrcfilter.analyzer.WhisperModel", side_effect=[mock_model1, mock_model2]) as mock_cls:
+        with patch(
+            "lrcfilter.analyzer.WhisperModel", side_effect=[mock_model1, mock_model2]
+        ) as mock_cls:
             result1 = get_model("tiny", "cpu", "float32")
             result2 = get_model("base", "cpu", "float32")
 
@@ -70,8 +72,10 @@ class TestGetModel:
 
     def test_raises_exception_on_model_creation_failure(self) -> None:
         """Should raise exception when WhisperModel creation fails."""
-        with patch("lrcfilter.analyzer.WhisperModel", side_effect=RuntimeError("CUDA error")), \
-             pytest.raises(RuntimeError, match="CUDA error"):
+        with (
+            patch("lrcfilter.analyzer.WhisperModel", side_effect=RuntimeError("CUDA error")),
+            pytest.raises(RuntimeError, match="CUDA error"),
+        ):
             get_model("large-v3", "cuda", "float16")
 
     def test_cache_key_format(self) -> None:
@@ -101,6 +105,7 @@ class TestGetModel:
                 results.append(get_model("tiny", "cpu", "float32"))
 
         import threading
+
         threads = [threading.Thread(target=create_model) for _ in range(10)]
         for t in threads:
             t.start()
@@ -128,8 +133,7 @@ class TestAnalyzeAudio:
         )
 
     def _make_mock_segment(
-        self, text: str = "Hello world", start: float = 0.0, end: float = 2.0,
-        words=None
+        self, text: str = "Hello world", start: float = 0.0, end: float = 2.0, words=None
     ) -> MagicMock:
         """Create a mock transcription segment."""
         mock_segment = MagicMock()
@@ -139,7 +143,9 @@ class TestAnalyzeAudio:
         mock_segment.words = words or []
         return mock_segment
 
-    def _make_mock_word(self, word: str = "Hello", start: float = 0.0, end: float = 0.5, prob: float = 0.99) -> MagicMock:
+    def _make_mock_word(
+        self, word: str = "Hello", start: float = 0.0, end: float = 0.5, prob: float = 0.99
+    ) -> MagicMock:
         """Create a mock word."""
         mock_word = MagicMock()
         mock_word.word = word
@@ -448,16 +454,20 @@ class TestAnalyzeAudio:
         """Should log info when loading model."""
         mock_model = MagicMock(spec=["transcribe"])
 
-        with patch("lrcfilter.analyzer.WhisperModel", return_value=mock_model), \
-             patch("lrcfilter.analyzer.logger") as mock_logger:
+        with (
+            patch("lrcfilter.analyzer.WhisperModel", return_value=mock_model),
+            patch("lrcfilter.analyzer.logger") as mock_logger,
+        ):
             get_model("tiny", "cpu", "float32")
             mock_logger.info.assert_any_call("Loading Whisper model 'tiny' on cpu...")
             mock_logger.info.assert_any_call("Model loaded successfully.")
 
     def test_model_creation_failure_logs_error(self) -> None:
         """Should log error when model creation fails."""
-        with patch("lrcfilter.analyzer.WhisperModel", side_effect=RuntimeError("CUDA error")), \
-             patch("lrcfilter.analyzer.logger") as mock_logger, \
-             pytest.raises(RuntimeError):
+        with (
+            patch("lrcfilter.analyzer.WhisperModel", side_effect=RuntimeError("CUDA error")),
+            patch("lrcfilter.analyzer.logger") as mock_logger,
+            pytest.raises(RuntimeError),
+        ):
             get_model("large-v3", "cuda", "float16")
         mock_logger.error.assert_called_once()

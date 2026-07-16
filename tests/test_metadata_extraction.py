@@ -10,14 +10,13 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-
-from lrcfilter.metadata import extract_metadata, _get_tag_value, _create_empty_metadata
+from lrcfilter.metadata import _create_empty_metadata, _get_tag_value, extract_metadata
 from lrcfilter.models import AudioFile
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_mock_mutagen(tags: dict[str, Any] | None, duration: float | None = 180.0) -> MagicMock:
     """Create a mock MutagenFile with controlled tags and duration."""
@@ -46,6 +45,7 @@ def _make_audio_file(tmp_path: Path, name: str = "test.mp3") -> AudioFile:
 # ---------------------------------------------------------------------------
 # Tests for _get_tag_value (pure unit tests)
 # ---------------------------------------------------------------------------
+
 
 class TestGetTagValue:
     """Test the _get_tag_value helper function."""
@@ -82,8 +82,8 @@ class TestGetTagValue:
 # Tests for _create_empty_metadata
 # ---------------------------------------------------------------------------
 
-class TestCreateEmptyMetadata:
 
+class TestCreateEmptyMetadata:
     def test_returns_filename_as_title(self) -> None:
         af = AudioFile(path=Path("/x.mp3"), filename="x.mp3", extension=".mp3", size_mb=0.0)
         result = _create_empty_metadata(af)
@@ -103,6 +103,7 @@ class TestCreateEmptyMetadata:
 # ---------------------------------------------------------------------------
 # Tests for extract_metadata using mocked MutagenFile
 # ---------------------------------------------------------------------------
+
 
 class TestExtractMetadata:
     """Test extract_metadata with mocked MutagenFile."""

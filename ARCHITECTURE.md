@@ -585,14 +585,22 @@ lrcfilter/
 │   └── pipeline.py          # Pipeline orchestration & config validation
 ├── tests/
 │   ├── __init__.py
-│   ├── test_scanner.py
-│   ├── test_metadata.py
-│   ├── test_lyrics.py
+│   ├── test_analyzer.py
+│   ├── test_cli.py
+│   ├── test_config_wiring.py
 │   ├── test_censorship.py
 │   ├── test_instrumental.py
+│   ├── test_logging_config.py
+│   ├── test_lyrics.py
+│   ├── test_lyrics_fetching.py
+│   ├── test_metadata.py
+│   ├── test_metadata_extraction.py
 │   ├── test_mismatch.py
-│   ├── test_config_wiring.py
-│   └── test_parameter_validation.py
+│   ├── test_output.py
+│   ├── test_parameter_validation.py
+│   ├── test_pipeline_integration.py
+│   ├── test_scanner.py
+│   └── test_utils.py
 ├── .github/
 │   ├── workflows/ci.yml     # GitHub Actions CI/CD
 │   └── dependabot.yml       # Dependabot config

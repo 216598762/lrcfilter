@@ -190,21 +190,27 @@ def test_detect_censorship_invalid_threshold() -> None:
 
 def test_generate_details_mismatch_only() -> None:
     """Test _generate_details with mismatch only (no profanity)."""
-    details = _generate_details(mismatch_score=0.8, profanity_count=0, is_censored=True, threshold=0.5)
+    details = _generate_details(
+        mismatch_score=0.8, profanity_count=0, is_censored=True, threshold=0.5
+    )
     assert "mismatch" in details.lower()
     assert "profanity" not in details
 
 
 def test_generate_details_profanity_only() -> None:
     """Test _generate_details with profanity only (no mismatch)."""
-    details = _generate_details(mismatch_score=0.1, profanity_count=3, is_censored=True, threshold=0.5)
+    details = _generate_details(
+        mismatch_score=0.1, profanity_count=3, is_censored=True, threshold=0.5
+    )
     assert "profanity" in details
     assert "3 profanity" in details
 
 
 def test_generate_details_both() -> None:
     """Test _generate_details with both mismatch and profanity."""
-    details = _generate_details(mismatch_score=0.8, profanity_count=2, is_censored=True, threshold=0.5)
+    details = _generate_details(
+        mismatch_score=0.8, profanity_count=2, is_censored=True, threshold=0.5
+    )
     assert "mismatch" in details.lower()
     assert "profanity" in details
     assert "; " in details  # Both parts joined with semicolon

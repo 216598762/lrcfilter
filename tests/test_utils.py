@@ -1,8 +1,6 @@
 """Tests for shared utility functions."""
 
-import pytest
-
-from lrcfilter.utils import normalize_text, normalize_for_censorship, normalize_for_mismatch
+from lrcfilter.utils import normalize_for_censorship, normalize_for_mismatch, normalize_text
 
 
 class TestNormalizeText:
@@ -23,7 +21,7 @@ class TestNormalizeText:
     # --- remove_quotes tests ---
 
     def test_remove_quotes_true(self) -> None:
-        assert normalize_text("It's a \"test\"", remove_quotes=True) == "its a test"
+        assert normalize_text('It\'s a "test"', remove_quotes=True) == "its a test"
 
     def test_normalize_quotes_default(self) -> None:
         # Smart quotes should be normalized (or at least not crash)
@@ -59,7 +57,9 @@ class TestNormalizeText:
 
     def test_remove_filler_words_custom(self) -> None:
         custom_fillers = {"foo", "bar"}
-        result = normalize_text("foo bar baz", remove_filler_words=True, filler_words=custom_fillers)
+        result = normalize_text(
+            "foo bar baz", remove_filler_words=True, filler_words=custom_fillers
+        )
         assert result == "baz"
 
     def test_remove_filler_words_none_uses_defaults(self) -> None:
@@ -77,7 +77,7 @@ class TestNormalizeText:
 
     def test_all_options_combined(self) -> None:
         result = normalize_text(
-            "The \"Song\" (Remix) is great",
+            'The "Song" (Remix) is great',
             remove_quotes=True,
             remove_filler_words=True,
             remove_suffixes=True,
@@ -108,7 +108,7 @@ class TestNormalizeForMismatch:
     """Test the normalize_for_mismatch convenience function."""
 
     def test_removes_quotes(self) -> None:
-        result = normalize_for_mismatch("It's a \"test\"")
+        result = normalize_for_mismatch('It\'s a "test"')
         assert "'" not in result
         assert '"' not in result
 

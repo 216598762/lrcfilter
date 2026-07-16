@@ -13,7 +13,7 @@ def setup_logging(
 ) -> None:
     """
     Configure logging for the application.
-    
+
     Args:
         verbose: Enable debug-level logging
         quiet: Suppress non-error output
@@ -26,26 +26,26 @@ def setup_logging(
         level = logging.WARNING
     else:
         level = logging.INFO
-    
+
     # Create formatter
     formatter = logging.Formatter(
         fmt="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-    
+
     # Configure root logger
     root_logger = logging.getLogger("lrcfilter")
     root_logger.setLevel(level)
-    
+
     # Clear existing handlers
     root_logger.handlers.clear()
-    
+
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(level)
     console_handler.setFormatter(formatter)
     root_logger.addHandler(console_handler)
-    
+
     # File handler (optional)
     if log_file:
         log_file.parent.mkdir(parents=True, exist_ok=True)
@@ -58,10 +58,10 @@ def setup_logging(
 def get_logger(name: str) -> logging.Logger:
     """
     Get a logger for a module.
-    
+
     Args:
         name: Logger name (usually module name)
-        
+
     Returns:
         Configured logger instance
     """

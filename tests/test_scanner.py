@@ -7,8 +7,8 @@ from unittest.mock import MagicMock
 import pytest
 
 import lrcfilter.scanner as scanner_module
-from lrcfilter.scanner import scan_audio_files
 from lrcfilter.config import SUPPORTED_FORMATS
+from lrcfilter.scanner import scan_audio_files
 
 
 def test_scan_empty_directory(tmp_path: Path) -> None:

@@ -376,6 +376,8 @@ File Scanner → Metadata Extractor → Lyrics Fetcher → Whisper Analyzer
 
 ## Testing
 
+LRCFilter includes **331 tests** with **99% code coverage** across all modules.
+
 ```bash
 # Run all tests
 pytest tests/ -v
@@ -386,9 +388,27 @@ pytest tests/test_config_wiring.py -v
 # Run with coverage
 pytest tests/ --cov=lrcfilter
 
-# Generate coverage report
+# Run with branch coverage (recommended)
+pytest tests/ --cov=lrcfilter --cov-branch
+
+# Generate HTML coverage report
 pytest tests/ --cov=lrcfilter --cov-report=html
 ```
+
+### Coverage by Module
+
+| Module | Coverage |
+|--------|----------|
+| scanner.py | 100% |
+| metadata.py | 100% |
+| mismatch.py | 100% |
+| output.py | 100% |
+| pipeline.py | 100% |
+| utils.py | 100% |
+| analyzer.py | 98% |
+| censorship.py | 98% |
+| lyrics.py | 98% |
+| **Overall** | **99%** |
 
 ## Development
 

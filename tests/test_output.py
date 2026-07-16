@@ -4,15 +4,13 @@ from pathlib import Path
 from typing import Optional
 from unittest.mock import patch
 
-import pytest
-
-from lrcfilter.output import write_results
 from lrcfilter.models import (
     AudioFile,
     CensorshipResult,
     InstrumentalResult,
     MismatchResult,
 )
+from lrcfilter.output import write_results
 
 
 def _make_audio_file(tmp_path: Path, name: str = "test.mp3") -> AudioFile:

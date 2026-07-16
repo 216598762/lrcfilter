@@ -4,20 +4,20 @@ import argparse
 import sys
 from pathlib import Path
 
-from lrcfilter.pipeline import run_pipeline, print_summary, PipelineConfig
 from lrcfilter.config import (
-    DEFAULT_MODEL,
-    DEFAULT_DEVICE,
-    DEFAULT_COMPUTE_TYPE,
-    SUPPORTED_FORMATS,
-    CENSORSHIP_MISMATCH_THRESHOLD,
-    MIN_WORDS_FOR_VOCALS,
-    MIN_SPEECH_DURATION,
-    TITLE_MATCH_THRESHOLD,
     ARTIST_MATCH_THRESHOLD,
+    CENSORSHIP_MISMATCH_THRESHOLD,
+    DEFAULT_COMPUTE_TYPE,
+    DEFAULT_DEVICE,
+    DEFAULT_MODEL,
     DURATION_TOLERANCE,
+    MIN_SPEECH_DURATION,
+    MIN_WORDS_FOR_VOCALS,
+    SUPPORTED_FORMATS,
+    TITLE_MATCH_THRESHOLD,
 )
-from lrcfilter.logging_config import setup_logging, get_logger
+from lrcfilter.logging_config import get_logger, setup_logging
+from lrcfilter.pipeline import PipelineConfig, print_summary, run_pipeline
 
 logger = get_logger(__name__)
 

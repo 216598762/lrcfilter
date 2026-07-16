@@ -12,7 +12,7 @@ def test_calculate_match_score() -> None:
         album=None,
         duration_seconds=None,
     )
-    
+
     # Perfect match
     lrclib_result = {
         "trackName": "Test Song",
@@ -20,7 +20,7 @@ def test_calculate_match_score() -> None:
     }
     score = _calculate_match_score(metadata, lrclib_result)
     assert score == 1.0
-    
+
     # Partial match
     lrclib_result = {
         "trackName": "Test Song (Remix)",
@@ -28,7 +28,7 @@ def test_calculate_match_score() -> None:
     }
     score = _calculate_match_score(metadata, lrclib_result)
     assert 0.0 < score < 1.0
-    
+
     # No match
     lrclib_result = {
         "trackName": "Different Song",
@@ -47,12 +47,12 @@ def test_calculate_match_score_missing_metadata() -> None:
         album=None,
         duration_seconds=None,
     )
-    
+
     lrclib_result = {
         "trackName": "Test Song",
         "artistName": "Test Artist",
     }
-    
+
     score = _calculate_match_score(metadata, lrclib_result)
     # Should only consider artist match
     assert 0.0 < score <= 1.0
@@ -61,7 +61,7 @@ def test_calculate_match_score_missing_metadata() -> None:
 def test_lyrics_result_dataclass() -> None:
     """Test LyricsResult dataclass creation."""
     from lrcfilter.models import LyricsResult
-    
+
     result = LyricsResult(
         source="lrclib",
         synced_lyrics="[00:00.00] Line 1",
@@ -71,7 +71,7 @@ def test_lyrics_result_dataclass() -> None:
         matched_album_name="Test Album",
         match_score=0.95,
     )
-    
+
     assert result.source == "lrclib"
     assert result.synced_lyrics == "[00:00.00] Line 1"
     assert result.plain_lyrics == "Line 1"

@@ -1,7 +1,7 @@
 """Shared utility functions for text normalization and comparison."""
 
 import re
-from typing import Optional, Set
+from typing import Optional
 
 
 def normalize_text(
@@ -10,8 +10,8 @@ def normalize_text(
     remove_quotes: bool = False,
     remove_filler_words: bool = False,
     remove_suffixes: bool = False,
-    filler_words: Optional[Set[str]] = None,
-    suffixes: Optional[Set[str]] = None,
+    filler_words: Optional[set[str]] = None,
+    suffixes: Optional[set[str]] = None,
 ) -> str:
     """
     Normalize text for comparison.
@@ -77,8 +77,19 @@ def normalize_text(
     if remove_filler_words:
         if filler_words is None:
             filler_words = {
-                "the", "a", "an", "and", "or", "but",
-                "in", "on", "at", "to", "for", "of", "with",
+                "the",
+                "a",
+                "an",
+                "and",
+                "or",
+                "but",
+                "in",
+                "on",
+                "at",
+                "to",
+                "for",
+                "of",
+                "with",
             }
         words = text.split()
         words = [w for w in words if w not in filler_words]

@@ -1,19 +1,20 @@
 """Tests to verify CLI config options are correctly passed through to functions."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from lrcfilter.pipeline import process_single_track, run_pipeline, PipelineConfig
+import pytest
+
 from lrcfilter.models import (
     AudioFile,
-    TrackMetadata,
-    LyricsResult,
-    TranscriptionResult,
     CensorshipResult,
     InstrumentalResult,
+    LyricsResult,
     MismatchResult,
+    TrackMetadata,
+    TranscriptionResult,
 )
+from lrcfilter.pipeline import PipelineConfig, process_single_track, run_pipeline
 
 
 @pytest.fixture
@@ -58,7 +59,7 @@ def mock_lyrics() -> LyricsResult:
 def mock_transcription() -> TranscriptionResult:
     """Create mock transcription result."""
     from lrcfilter.models import Segment, Word
-    
+
     segment = Segment(
         start=0.0,
         end=5.0,
@@ -76,7 +77,7 @@ def mock_transcription() -> TranscriptionResult:
 
 class TestProcessSingleTrackConfigWiring:
     """Test that config options are passed correctly to functions in process_single_track."""
-    
+
     @patch("lrcfilter.pipeline.analyze_audio")
     @patch("lrcfilter.pipeline.fetch_lyrics")
     @patch("lrcfilter.pipeline.extract_metadata")
@@ -94,14 +95,14 @@ class TestProcessSingleTrackConfigWiring:
         mock_extract_metadata.return_value = mock_metadata
         mock_fetch_lyrics.return_value = mock_lyrics
         mock_analyze_audio.return_value = mock_transcription
-        
+
         config = PipelineConfig(beam_size=8)
         process_single_track(mock_audio_file, config)
-        
+
         # Verify beam_size was passed
         call_kwargs = mock_analyze_audio.call_args[1]
         assert call_kwargs["beam_size"] == 8
-    
+
     @patch("lrcfilter.pipeline.analyze_audio")
     @patch("lrcfilter.pipeline.fetch_lyrics")
     @patch("lrcfilter.pipeline.extract_metadata")
@@ -119,14 +120,14 @@ class TestProcessSingleTrackConfigWiring:
         mock_extract_metadata.return_value = mock_metadata
         mock_fetch_lyrics.return_value = mock_lyrics
         mock_analyze_audio.return_value = mock_transcription
-        
+
         config = PipelineConfig(vad_filter=False)
         process_single_track(mock_audio_file, config)
-        
+
         # Verify vad_filter was passed
         call_kwargs = mock_analyze_audio.call_args[1]
         assert call_kwargs["vad_filter"] is False
-    
+
     @patch("lrcfilter.pipeline.analyze_audio")
     @patch("lrcfilter.pipeline.fetch_lyrics")
     @patch("lrcfilter.pipeline.extract_metadata")
@@ -144,14 +145,14 @@ class TestProcessSingleTrackConfigWiring:
         mock_extract_metadata.return_value = mock_metadata
         mock_fetch_lyrics.return_value = mock_lyrics
         mock_analyze_audio.return_value = mock_transcription
-        
+
         config = PipelineConfig(genius_token="test_token_123")
         process_single_track(mock_audio_file, config)
-        
+
         # Verify genius_token was passed
         call_kwargs = mock_fetch_lyrics.call_args[1]
         assert call_kwargs["genius_token"] == "test_token_123"
-    
+
     @patch("lrcfilter.pipeline.analyze_audio")
     @patch("lrcfilter.pipeline.fetch_lyrics")
     @patch("lrcfilter.pipeline.extract_metadata")
@@ -169,14 +170,14 @@ class TestProcessSingleTrackConfigWiring:
         mock_extract_metadata.return_value = mock_metadata
         mock_fetch_lyrics.return_value = mock_lyrics
         mock_analyze_audio.return_value = mock_transcription
-        
+
         config = PipelineConfig(lrclib_only=True)
         process_single_track(mock_audio_file, config)
-        
+
         # Verify lrclib_only was passed
         call_kwargs = mock_fetch_lyrics.call_args[1]
         assert call_kwargs["lrclib_only"] is True
-    
+
     @patch("lrcfilter.pipeline.analyze_audio")
     @patch("lrcfilter.pipeline.fetch_lyrics")
     @patch("lrcfilter.pipeline.extract_metadata")
@@ -194,14 +195,14 @@ class TestProcessSingleTrackConfigWiring:
         mock_extract_metadata.return_value = mock_metadata
         mock_fetch_lyrics.return_value = mock_lyrics
         mock_analyze_audio.return_value = mock_transcription
-        
+
         config = PipelineConfig(api_delay=2.5)
         process_single_track(mock_audio_file, config)
-        
+
         # Verify api_delay was passed
         call_kwargs = mock_fetch_lyrics.call_args[1]
         assert call_kwargs["api_delay"] == 2.5
-    
+
     @patch("lrcfilter.pipeline.analyze_audio")
     @patch("lrcfilter.pipeline.fetch_lyrics")
     @patch("lrcfilter.pipeline.extract_metadata")
@@ -222,17 +223,20 @@ class TestProcessSingleTrackConfigWiring:
         mock_fetch_lyrics.return_value = mock_lyrics
         mock_analyze_audio.return_value = mock_transcription
         mock_detect_censorship.return_value = CensorshipResult(
-            is_censored=False, mismatch_score=0.0, profanity_count=0,
-            confidence=0.0, details="No censorship detected"
+            is_censored=False,
+            mismatch_score=0.0,
+            profanity_count=0,
+            confidence=0.0,
+            details="No censorship detected",
         )
-        
+
         config = PipelineConfig(censorship_threshold=0.5)
         process_single_track(mock_audio_file, config)
-        
+
         # Verify threshold was passed
         call_kwargs = mock_detect_censorship.call_args[1]
         assert call_kwargs["threshold"] == 0.5
-    
+
     @patch("lrcfilter.pipeline.analyze_audio")
     @patch("lrcfilter.pipeline.fetch_lyrics")
     @patch("lrcfilter.pipeline.extract_metadata")
@@ -255,14 +259,14 @@ class TestProcessSingleTrackConfigWiring:
         mock_detect_instrumental.return_value = InstrumentalResult(
             is_instrumental=False, word_count=10, speech_duration=5.0, confidence=0.2
         )
-        
+
         config = PipelineConfig(min_words_vocals=20)
         process_single_track(mock_audio_file, config)
-        
+
         # Verify min_words_vocals was passed
         call_kwargs = mock_detect_instrumental.call_args[1]
         assert call_kwargs["min_words_vocals"] == 20
-    
+
     @patch("lrcfilter.pipeline.analyze_audio")
     @patch("lrcfilter.pipeline.fetch_lyrics")
     @patch("lrcfilter.pipeline.extract_metadata")
@@ -285,14 +289,14 @@ class TestProcessSingleTrackConfigWiring:
         mock_detect_instrumental.return_value = InstrumentalResult(
             is_instrumental=False, word_count=10, speech_duration=5.0, confidence=0.2
         )
-        
+
         config = PipelineConfig(min_speech_duration=10.0)
         process_single_track(mock_audio_file, config)
-        
+
         # Verify min_speech_duration was passed
         call_kwargs = mock_detect_instrumental.call_args[1]
         assert call_kwargs["min_speech_duration"] == 10.0
-    
+
     @patch("lrcfilter.pipeline.analyze_audio")
     @patch("lrcfilter.pipeline.fetch_lyrics")
     @patch("lrcfilter.pipeline.extract_metadata")
@@ -313,17 +317,21 @@ class TestProcessSingleTrackConfigWiring:
         mock_fetch_lyrics.return_value = mock_lyrics
         mock_analyze_audio.return_value = mock_transcription
         mock_detect_mismatch.return_value = MismatchResult(
-            is_mismatch=False, title_score=0.9, artist_score=0.9,
-            duration_difference=0.0, confidence=0.1, details="Metadata matches"
+            is_mismatch=False,
+            title_score=0.9,
+            artist_score=0.9,
+            duration_difference=0.0,
+            confidence=0.1,
+            details="Metadata matches",
         )
-        
+
         config = PipelineConfig(title_threshold=0.8)
         process_single_track(mock_audio_file, config)
-        
+
         # Verify title_threshold was passed
         call_kwargs = mock_detect_mismatch.call_args[1]
         assert call_kwargs["title_threshold"] == 0.8
-    
+
     @patch("lrcfilter.pipeline.analyze_audio")
     @patch("lrcfilter.pipeline.fetch_lyrics")
     @patch("lrcfilter.pipeline.extract_metadata")
@@ -344,17 +352,21 @@ class TestProcessSingleTrackConfigWiring:
         mock_fetch_lyrics.return_value = mock_lyrics
         mock_analyze_audio.return_value = mock_transcription
         mock_detect_mismatch.return_value = MismatchResult(
-            is_mismatch=False, title_score=0.9, artist_score=0.9,
-            duration_difference=0.0, confidence=0.1, details="Metadata matches"
+            is_mismatch=False,
+            title_score=0.9,
+            artist_score=0.9,
+            duration_difference=0.0,
+            confidence=0.1,
+            details="Metadata matches",
         )
-        
+
         config = PipelineConfig(artist_threshold=0.85)
         process_single_track(mock_audio_file, config)
-        
+
         # Verify artist_threshold was passed
         call_kwargs = mock_detect_mismatch.call_args[1]
         assert call_kwargs["artist_threshold"] == 0.85
-    
+
     @patch("lrcfilter.pipeline.analyze_audio")
     @patch("lrcfilter.pipeline.fetch_lyrics")
     @patch("lrcfilter.pipeline.extract_metadata")
@@ -375,17 +387,21 @@ class TestProcessSingleTrackConfigWiring:
         mock_fetch_lyrics.return_value = mock_lyrics
         mock_analyze_audio.return_value = mock_transcription
         mock_detect_mismatch.return_value = MismatchResult(
-            is_mismatch=False, title_score=0.9, artist_score=0.9,
-            duration_difference=0.0, confidence=0.1, details="Metadata matches"
+            is_mismatch=False,
+            title_score=0.9,
+            artist_score=0.9,
+            duration_difference=0.0,
+            confidence=0.1,
+            details="Metadata matches",
         )
-        
+
         config = PipelineConfig(duration_tolerance=60.0)
         process_single_track(mock_audio_file, config)
-        
+
         # Verify duration_tolerance was passed
         call_kwargs = mock_detect_mismatch.call_args[1]
         assert call_kwargs["duration_tolerance"] == 60.0
-    
+
     @patch("lrcfilter.pipeline.analyze_audio")
     @patch("lrcfilter.pipeline.fetch_lyrics")
     @patch("lrcfilter.pipeline.extract_metadata")
@@ -406,14 +422,14 @@ class TestProcessSingleTrackConfigWiring:
         mock_extract_metadata.return_value = mock_metadata
         mock_fetch_lyrics.return_value = None
         mock_analyze_audio.return_value = mock_transcription
-        
+
         config = PipelineConfig()
         process_single_track(mock_audio_file, config)
-        
+
         # Verify mismatch and censorship were not called
         mock_detect_mismatch.assert_not_called()
         mock_detect_censorship.assert_not_called()
-    
+
     @patch("lrcfilter.pipeline.analyze_audio")
     @patch("lrcfilter.pipeline.fetch_lyrics")
     @patch("lrcfilter.pipeline.extract_metadata")
@@ -442,17 +458,17 @@ class TestProcessSingleTrackConfigWiring:
         )
         mock_fetch_lyrics.return_value = lyrics
         mock_analyze_audio.return_value = mock_transcription
-        
+
         config = PipelineConfig()
         process_single_track(mock_audio_file, config)
-        
+
         # Verify censorship was not called
         mock_detect_censorship.assert_not_called()
 
 
 class TestRunPipelineConfigWiring:
     """Test that config options are passed correctly to functions in run_pipeline."""
-    
+
     @patch("lrcfilter.pipeline.write_results")
     @patch("lrcfilter.pipeline.process_single_track")
     @patch("lrcfilter.pipeline.scan_audio_files")
@@ -465,15 +481,15 @@ class TestRunPipelineConfigWiring:
     ) -> None:
         """Test that formats is passed to scan_audio_files."""
         mock_scan.return_value = []
-        
+
         custom_formats = {".mp3", ".flac"}
         config = PipelineConfig(formats=custom_formats)
         run_pipeline(tmp_path, config)
-        
+
         # Verify formats was passed
         call_kwargs = mock_scan.call_args[1]
         assert call_kwargs["formats"] == custom_formats
-    
+
     @patch("lrcfilter.pipeline.write_results")
     @patch("lrcfilter.pipeline.process_single_track")
     @patch("lrcfilter.pipeline.scan_audio_files")
@@ -487,26 +503,29 @@ class TestRunPipelineConfigWiring:
     ) -> None:
         """Test that no_censored flag prevents writing censored tracks."""
         from lrcfilter.models import CensorshipResult
-        
+
         mock_scan.return_value = [mock_audio_file]
         mock_process.return_value = MagicMock(
             censorship=CensorshipResult(
-                is_censored=True, mismatch_score=0.5, profanity_count=1,
-                confidence=0.7, details="Censored"
+                is_censored=True,
+                mismatch_score=0.5,
+                profanity_count=1,
+                confidence=0.7,
+                details="Censored",
             ),
             instrumental=InstrumentalResult(
                 is_instrumental=False, word_count=10, speech_duration=5.0, confidence=0.2
             ),
             mismatch=None,
         )
-        
+
         config = PipelineConfig(no_censored=True)
         run_pipeline(tmp_path, config)
-        
+
         # Verify write_results was called with empty censored_tracks
         call_kwargs = mock_write.call_args[1]
         assert call_kwargs["censored_tracks"] == []
-    
+
     @patch("lrcfilter.pipeline.write_results")
     @patch("lrcfilter.pipeline.process_single_track")
     @patch("lrcfilter.pipeline.scan_audio_files")
@@ -527,14 +546,14 @@ class TestRunPipelineConfigWiring:
             ),
             mismatch=None,
         )
-        
+
         config = PipelineConfig(no_instrumental=True)
         run_pipeline(tmp_path, config)
-        
+
         # Verify write_results was called with empty instrumental_tracks
         call_kwargs = mock_write.call_args[1]
         assert call_kwargs["instrumental_tracks"] == []
-    
+
     @patch("lrcfilter.pipeline.write_results")
     @patch("lrcfilter.pipeline.process_single_track")
     @patch("lrcfilter.pipeline.scan_audio_files")
@@ -554,18 +573,22 @@ class TestRunPipelineConfigWiring:
                 is_instrumental=False, word_count=10, speech_duration=5.0, confidence=0.2
             ),
             mismatch=MismatchResult(
-                is_mismatch=True, title_score=0.3, artist_score=0.4,
-                duration_difference=0.0, confidence=0.8, details="Mismatch"
+                is_mismatch=True,
+                title_score=0.3,
+                artist_score=0.4,
+                duration_difference=0.0,
+                confidence=0.8,
+                details="Mismatch",
             ),
         )
-        
+
         config = PipelineConfig(no_mismatches=True)
         run_pipeline(tmp_path, config)
-        
+
         # Verify write_results was called with empty metadata_mismatches
         call_kwargs = mock_write.call_args[1]
         assert call_kwargs["metadata_mismatches"] == []
-    
+
     @patch("lrcfilter.pipeline.write_results")
     @patch("lrcfilter.pipeline.process_single_track")
     @patch("lrcfilter.pipeline.scan_audio_files")
@@ -579,21 +602,24 @@ class TestRunPipelineConfigWiring:
     ) -> None:
         """Test that output_dir is passed to write_results."""
         from lrcfilter.models import CensorshipResult
-        
+
         mock_scan.return_value = [mock_audio_file]
         mock_process.return_value = MagicMock(
             censorship=CensorshipResult(
-                is_censored=True, mismatch_score=0.5, profanity_count=1,
-                confidence=0.7, details="Censored"
+                is_censored=True,
+                mismatch_score=0.5,
+                profanity_count=1,
+                confidence=0.7,
+                details="Censored",
             ),
             instrumental=None,
             mismatch=None,
         )
-        
+
         output_dir = tmp_path / "output"
         config = PipelineConfig(output_dir=output_dir)
         run_pipeline(tmp_path, config)
-        
+
         # Verify output_dir was passed to write_results
         call_kwargs = mock_write.call_args[1]
         assert call_kwargs["output_dir"] == output_dir
@@ -601,42 +627,42 @@ class TestRunPipelineConfigWiring:
 
 class TestPipelineConfigDefaults:
     """Test PipelineConfig default values match expected defaults."""
-    
+
     def test_default_beam_size(self) -> None:
         """Test default beam_size is 5."""
         config = PipelineConfig()
         assert config.beam_size == 5
-    
+
     def test_default_vad_filter(self) -> None:
         """Test default vad_filter is True."""
         config = PipelineConfig()
         assert config.vad_filter is True
-    
+
     def test_default_censorship_threshold(self) -> None:
         """Test default censorship_threshold is 0.3."""
         config = PipelineConfig()
         assert config.censorship_threshold == 0.3
-    
+
     def test_default_min_words_vocals(self) -> None:
         """Test default min_words_vocals is 10."""
         config = PipelineConfig()
         assert config.min_words_vocals == 10
-    
+
     def test_default_min_speech_duration(self) -> None:
         """Test default min_speech_duration is 5.0."""
         config = PipelineConfig()
         assert config.min_speech_duration == 5.0
-    
+
     def test_default_title_threshold(self) -> None:
         """Test default title_threshold is 0.6."""
         config = PipelineConfig()
         assert config.title_threshold == 0.6
-    
+
     def test_default_artist_threshold(self) -> None:
         """Test default artist_threshold is 0.7."""
         config = PipelineConfig()
         assert config.artist_threshold == 0.7
-    
+
     def test_default_duration_tolerance(self) -> None:
         """Test default duration_tolerance is 30.0."""
         config = PipelineConfig()

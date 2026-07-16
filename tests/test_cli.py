@@ -1,10 +1,9 @@
 """Tests for CLI entry point module."""
 
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-
-from lrcfilter.__main__ import parse_args, main, progress_callback
+from lrcfilter.__main__ import main, parse_args, progress_callback
 
 
 class TestParseArgs:
@@ -189,8 +188,7 @@ class TestMain:
     def test_exits_when_directory_not_exists(self, tmp_path: Path) -> None:
         """Should exit with code 1 when directory doesn't exist."""
         nonexistent = tmp_path / "nonexistent"
-        with patch("sys.argv", ["lrcfilter", str(nonexistent)]), \
-             patch("sys.exit") as mock_exit:
+        with patch("sys.argv", ["lrcfilter", str(nonexistent)]), patch("sys.exit") as mock_exit:
             main()
             mock_exit.assert_called_with(1)
 
@@ -198,8 +196,7 @@ class TestMain:
         """Should exit with code 1 when path is not a directory."""
         test_file = tmp_path / "file.txt"
         test_file.touch()
-        with patch("sys.argv", ["lrcfilter", str(test_file)]), \
-             patch("sys.exit") as mock_exit:
+        with patch("sys.argv", ["lrcfilter", str(test_file)]), patch("sys.exit") as mock_exit:
             main()
             mock_exit.assert_called_with(1)
 
@@ -215,9 +212,11 @@ class TestMain:
         mock_result.instrumental_tracks = []
         mock_result.metadata_mismatches = []
 
-        with patch("sys.argv", ["lrcfilter", str(music_dir)]), \
-             patch("lrcfilter.__main__.run_pipeline", return_value=mock_result) as mock_pipeline, \
-             patch("lrcfilter.__main__.print_summary"):
+        with (
+            patch("sys.argv", ["lrcfilter", str(music_dir)]),
+            patch("lrcfilter.__main__.run_pipeline", return_value=mock_result) as mock_pipeline,
+            patch("lrcfilter.__main__.print_summary"),
+        ):
             main()
             mock_pipeline.assert_called_once()
 
@@ -233,14 +232,22 @@ class TestMain:
         mock_result.instrumental_tracks = []
         mock_result.metadata_mismatches = []
 
-        with patch("sys.argv", [
-            "lrcfilter", str(music_dir),
-            "-m", "turbo",
-            "-d", "cpu",
-            "--no-censored",
-        ]), \
-             patch("lrcfilter.__main__.run_pipeline", return_value=mock_result) as mock_pipeline, \
-             patch("lrcfilter.__main__.print_summary"):
+        with (
+            patch(
+                "sys.argv",
+                [
+                    "lrcfilter",
+                    str(music_dir),
+                    "-m",
+                    "turbo",
+                    "-d",
+                    "cpu",
+                    "--no-censored",
+                ],
+            ),
+            patch("lrcfilter.__main__.run_pipeline", return_value=mock_result) as mock_pipeline,
+            patch("lrcfilter.__main__.print_summary"),
+        ):
             main()
             config = mock_pipeline.call_args[1]["config"]
             assert config.model_name == "turbo"
@@ -259,10 +266,12 @@ class TestMain:
         mock_result.instrumental_tracks = []
         mock_result.metadata_mismatches = []
 
-        with patch("sys.argv", ["lrcfilter", str(music_dir), "-v"]), \
-             patch("lrcfilter.__main__.setup_logging") as mock_setup, \
-             patch("lrcfilter.__main__.run_pipeline", return_value=mock_result), \
-             patch("lrcfilter.__main__.print_summary"):
+        with (
+            patch("sys.argv", ["lrcfilter", str(music_dir), "-v"]),
+            patch("lrcfilter.__main__.setup_logging") as mock_setup,
+            patch("lrcfilter.__main__.run_pipeline", return_value=mock_result),
+            patch("lrcfilter.__main__.print_summary"),
+        ):
             main()
             mock_setup.assert_called_once()
             assert mock_setup.call_args[1]["verbose"] is True
@@ -279,9 +288,11 @@ class TestMain:
         mock_result.instrumental_tracks = []
         mock_result.metadata_mismatches = []
 
-        with patch("sys.argv", ["lrcfilter", str(music_dir)]), \
-             patch("lrcfilter.__main__.run_pipeline", return_value=mock_result) as mock_pipeline, \
-             patch("lrcfilter.__main__.print_summary"):
+        with (
+            patch("sys.argv", ["lrcfilter", str(music_dir)]),
+            patch("lrcfilter.__main__.run_pipeline", return_value=mock_result) as mock_pipeline,
+            patch("lrcfilter.__main__.print_summary"),
+        ):
             main()
             assert "progress_callback" in mock_pipeline.call_args[1]
 
@@ -292,8 +303,10 @@ class TestMain:
 
         mock_result = MagicMock()
 
-        with patch("sys.argv", ["lrcfilter", str(music_dir)]), \
-             patch("lrcfilter.__main__.run_pipeline", return_value=mock_result), \
-             patch("lrcfilter.__main__.print_summary") as mock_summary:
+        with (
+            patch("sys.argv", ["lrcfilter", str(music_dir)]),
+            patch("lrcfilter.__main__.run_pipeline", return_value=mock_result),
+            patch("lrcfilter.__main__.print_summary") as mock_summary,
+        ):
             main()
             mock_summary.assert_called_once_with(mock_result)
