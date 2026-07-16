@@ -2,7 +2,7 @@
 
 from rapidfuzz import fuzz
 
-from lrcfilter.config import TITLE_MATCH_THRESHOLD, ARTIST_MATCH_THRESHOLD, DURATION_TOLERANCE
+from lrcfilter.config import TITLE_MATCH_THRESHOLD, ARTIST_MATCH_THRESHOLD
 from lrcfilter.models import TrackMetadata, LyricsResult, MismatchResult
 from lrcfilter.utils import normalize_for_mismatch
 
@@ -12,7 +12,7 @@ def detect_metadata_mismatch(
     lyrics_result: LyricsResult,
     title_threshold: float = TITLE_MATCH_THRESHOLD,
     artist_threshold: float = ARTIST_MATCH_THRESHOLD,
-    duration_tolerance: float = DURATION_TOLERANCE,
+    duration_tolerance: float = 30.0,  # Kept for API compatibility
 ) -> MismatchResult:
     """
     Detect if lyrics metadata doesn't match file metadata.
@@ -25,7 +25,7 @@ def detect_metadata_mismatch(
         artist_threshold: Minimum artist similarity score (0-1) to consider match.
                          Default from config.ARTIST_MATCH_THRESHOLD.
         duration_tolerance: Maximum allowed duration difference in seconds.
-                           Default from config.DURATION_TOLERANCE.
+                           Default: 30.0 seconds.
         
     Returns:
         MismatchResult with detection results
