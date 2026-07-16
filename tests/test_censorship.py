@@ -2,19 +2,19 @@
 
 from lrcfilter.censorship import (
     detect_censorship,
-    _normalize_text,
     _calculate_mismatch_score,
     _detect_profanity,
 )
 from lrcfilter.models import CensorshipResult
+from lrcfilter.utils import normalize_for_censorship
 
 
 def test_normalize_text_censorship() -> None:
     """Test text normalization for censorship detection."""
-    assert _normalize_text("Hello World") == "hello world"
-    assert _normalize_text("  extra   spaces  ") == "extra spaces"
+    assert normalize_for_censorship("Hello World") == "hello world"
+    assert normalize_for_censorship("  extra   spaces  ") == "extra spaces"
     # Filler words are removed, apostrophes are normalized
-    assert _normalize_text("it's a test") == "it's test"
+    assert normalize_for_censorship("it's a test") == "it's test"
 
 
 def test_calculate_mismatch_score_identical() -> None:

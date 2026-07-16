@@ -2,19 +2,22 @@
 
 from lrcfilter.mismatch import (
     detect_metadata_mismatch,
-    _normalize_text,
     _calculate_title_similarity,
     _calculate_artist_similarity,
 )
 from lrcfilter.models import TrackMetadata, LyricsResult, MismatchResult
+from lrcfilter.utils import normalize_for_mismatch
 
 
 def test_normalize_text_mismatch() -> None:
     """Test text normalization for mismatch detection."""
-    assert _normalize_text("Hello World") == "hello world"
-    assert _normalize_text("  extra   spaces  ") == "extra spaces"
-    assert _normalize_text("Song (Remix)") == "song"
-    assert _normalize_text("Song (Live)") == "song"
+    assert normalize_for_mismatch("Hello World") == "hello world"
+    assert normalize_for_mismatch("  extra   spaces  ") == "extra spaces"
+    assert normalize_for_mismatch("Song (Remix)") == "song"
+    assert normalize_for_mismatch("Song (Live)") == "song"
+    # Test new suffixes
+    assert normalize_for_mismatch("Song (Deluxe Edition)") == "song"
+    assert normalize_for_mismatch("Song (Remastered)") == "song"
 
 
 def test_calculate_title_similarity_identical() -> None:

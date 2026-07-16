@@ -7,6 +7,7 @@ from rapidfuzz import fuzz
 
 from lrcfilter.config import CENSORSHIP_MISMATCH_THRESHOLD
 from lrcfilter.models import CensorshipResult
+from lrcfilter.utils import normalize_for_censorship
 
 # Optional better-profanity import
 try:
@@ -71,34 +72,6 @@ def detect_censorship(
     )
 
 
-def _normalize_text(text: str) -> str:
-    """
-    Normalize text for comparison.
-    
-    Args:
-        text: Input text
-        
-    Returns:
-        Normalized text
-    """
-    # Lowercase
-    text = text.lower()
-    
-    # Remove common variations
-    text = re.sub(r"[''`]", "'", text)
-    text = re.sub(r'["""]', '"', text)
-    
-    # Remove extra whitespace
-    text = re.sub(r'\s+', ' ', text).strip()
-    
-    # Remove common filler words
-    filler_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with"}
-    words = text.split()
-    words = [w for w in words if w not in filler_words]
-    
-    return " ".join(words)
-
-
 def _calculate_mismatch_score(lyrics: str, transcription: str) -> float:
     """
     Calculate mismatch score between lyrics and transcription.
@@ -113,8 +86,8 @@ def _calculate_mismatch_score(lyrics: str, transcription: str) -> float:
     if not lyrics or not transcription:
         return 0.0
     
-    normalized_lyrics = _normalize_text(lyrics)
-    normalized_transcription = _normalize_text(transcription)
+    normalized_lyrics = normalize_for_censorship(lyrics)
+    normalized_transcription = normalize_for_censorship(transcription)
     
     # Use fuzzy matching for comparison
     # Token sort ratio handles different word orderings

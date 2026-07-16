@@ -4,6 +4,7 @@ from rapidfuzz import fuzz
 
 from lrcfilter.config import TITLE_MATCH_THRESHOLD, ARTIST_MATCH_THRESHOLD, DURATION_TOLERANCE
 from lrcfilter.models import TrackMetadata, LyricsResult, MismatchResult
+from lrcfilter.utils import normalize_for_mismatch
 
 
 def detect_metadata_mismatch(
@@ -90,36 +91,6 @@ def detect_metadata_mismatch(
     )
 
 
-def _normalize_text(text: str) -> str:
-    """
-    Normalize text for comparison.
-    
-    Args:
-        text: Input text
-        
-    Returns:
-        Normalized text
-    """
-    if not text:
-        return ""
-    
-    # Lowercase
-    text = text.lower()
-    
-    # Remove common variations
-    text = text.replace("'", "").replace("'", "")
-    text = text.replace('"', '').replace('"', '')
-    
-    # Remove common suffixes/prefixes
-    for suffix in ["(remix)", "(live)", "(acoustic)", "(instrumental)", "(radio edit)"]:
-        text = text.replace(suffix, "")
-    
-    # Remove extra whitespace
-    text = " ".join(text.split())
-    
-    return text.strip()
-
-
 def _calculate_title_similarity(title1: str, title2: str) -> float:
     """
     Calculate similarity between two titles.
@@ -134,8 +105,8 @@ def _calculate_title_similarity(title1: str, title2: str) -> float:
     if not title1 or not title2:
         return 0.0
     
-    norm_title1 = _normalize_text(title1)
-    norm_title2 = _normalize_text(title2)
+    norm_title1 = normalize_for_mismatch(title1)
+    norm_title2 = normalize_for_mismatch(title2)
     
     if not norm_title1 or not norm_title2:
         return 0.0
@@ -160,8 +131,8 @@ def _calculate_artist_similarity(artist1: str, artist2: str) -> float:
     if not artist1 or not artist2:
         return 0.0
     
-    norm_artist1 = _normalize_text(artist1)
-    norm_artist2 = _normalize_text(artist2)
+    norm_artist1 = normalize_for_mismatch(artist1)
+    norm_artist2 = normalize_for_mismatch(artist2)
     
     if not norm_artist1 or not norm_artist2:
         return 0.0
