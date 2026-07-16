@@ -8,6 +8,14 @@ from lrcfilter.config import CENSORSHIP_MISMATCH_THRESHOLD
 from lrcfilter.models import CensorshipResult
 from lrcfilter.utils import normalize_for_censorship
 
+# Fallback to basic profanity list (used when better_profanity is unavailable)
+COMMON_PROFANITY = {
+    "fuck", "shit", "damn", "hell", "ass", "bitch",
+    "bastard", "crap", "dick", "cock", "pussy",
+    "whore", "slut", "nigger", "nigga", "faggot",
+    "retard", "retarded",
+}
+
 # Optional better-profanity import
 try:
     from better_profanity import profanity
@@ -15,13 +23,6 @@ try:
     BETTER_PROFANITY_AVAILABLE = True
 except ImportError:
     BETTER_PROFANITY_AVAILABLE = False
-    # Fallback to basic profanity list
-    COMMON_PROFANITY = {
-        "fuck", "shit", "damn", "hell", "ass", "bitch",
-        "bastard", "crap", "dick", "cock", "pussy",
-        "whore", "slut", "nigger", "nigga", "faggot",
-        "retard", "retarded",
-    }
 
 
 def detect_censorship(
